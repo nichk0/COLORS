@@ -7,9 +7,9 @@
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Serve per salvare nel Rullino la foto con la correzione colore.</string>
+	<string>Used to save the graded photo to the Camera Roll.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Serve per creare i sottotitoli dal parlato dei tuoi video.</string>
+	<string>Used to create captions from the speech in your videos.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UIUserInterfaceStyle</key>

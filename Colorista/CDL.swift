@@ -41,7 +41,7 @@ struct CDL: Equatable {
 
     enum Errore: LocalizedError {
         case nonCDL
-        var errorDescription: String? { "Il file non contiene una correzione ASC CDL (Slope/Offset/Power)." }
+        var errorDescription: String? { "The file does not contain an ASC CDL correction (Slope/Offset/Power)." }
     }
 
     /// Legge la prima correzione da un .cdl, .cc o .ccc.

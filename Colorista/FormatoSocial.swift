@@ -3,11 +3,11 @@ import CoreImage
 
 /// Preset di esportazione per i social, come i preset della pagina Deliver di DaVinci.
 enum FormatoSocial: String, CaseIterable, Identifiable {
-    case originale = "Originale"
+    case originale = "Original"
     case youtube4K = "YouTube 4K"
     case youtube = "YouTube 1080p"
     case shorts = "YouTube Shorts"
-    case reel = "Instagram Reel / Storia"
+    case reel = "Instagram Reel / Story"
     case post = "Instagram Post 4:5"
     case quadrato = "Instagram 1:1"
     case tiktok = "TikTok"
@@ -31,7 +31,7 @@ enum FormatoSocial: String, CaseIterable, Identifiable {
 
     var rapporto: String {
         switch self {
-        case .originale: return "come la clip"
+        case .originale: return "same as clip"
         case .youtube4K, .youtube, .facebook, .x: return "16:9"
         case .shorts, .reel, .tiktok: return "9:16"
         case .post: return "4:5"
@@ -56,16 +56,16 @@ enum FormatoSocial: String, CaseIterable, Identifiable {
 
     var descrizione: String {
         switch self {
-        case .originale: return "Stessa misura della clip, H.264."
-        case .youtube4K: return "3840×2160 HEVC: per video girati in 4K."
-        case .youtube: return "1920×1080 H.264, il formato standard di YouTube."
-        case .shorts: return "1080×1920 verticale, fino a 3 minuti."
-        case .reel: return "1080×1920 verticale per Reel e Storie."
-        case .post: return "1080×1350: il formato che occupa più spazio nel feed."
-        case .quadrato: return "1080×1080 quadrato."
-        case .tiktok: return "1080×1920 verticale."
+        case .originale: return "Same size as the clip, H.264."
+        case .youtube4K: return "3840×2160 HEVC: for videos shot in 4K."
+        case .youtube: return "1920×1080 H.264, YouTube's standard format."
+        case .shorts: return "1080×1920 vertical, up to 3 minutes."
+        case .reel: return "1080×1920 vertical for Reels and Stories."
+        case .post: return "1080×1350: the format that takes up the most space in the feed."
+        case .quadrato: return "1080×1080 square."
+        case .tiktok: return "1080×1920 vertical."
         case .facebook: return "1920×1080 H.264."
-        case .x: return "1280×720 H.264, leggero da caricare."
+        case .x: return "1280×720 H.264, light to upload."
         }
     }
 

@@ -21,9 +21,9 @@ struct CubeLUT: Codable, Hashable {
         case senzaDimensione, datiMancanti(trovati: Int, attesi: Int), rigaNonValida(String)
         var errorDescription: String? {
             switch self {
-            case .senzaDimensione: return "Manca LUT_3D_SIZE o LUT_1D_SIZE nel file."
-            case let .datiMancanti(t, a): return "La LUT ha \(t) colori invece di \(a)."
-            case let .rigaNonValida(r): return "Riga non valida: \(r)"
+            case .senzaDimensione: return "LUT_3D_SIZE or LUT_1D_SIZE is missing from the file."
+            case let .datiMancanti(t, a): return "The LUT has \(t) colors instead of \(a)."
+            case let .rigaNonValida(r): return "Invalid line: \(r)"
             }
         }
     }
@@ -100,7 +100,7 @@ struct CubeLUT: Codable, Hashable {
     /// Testo del file .cube, con le sole parole chiave che legge anche DaVinci Resolve (niente DOMAIN_MIN/MAX).
     func testoCube() -> String {
         let pulito = titolo.replacingOccurrences(of: "\"", with: "'")
-        var s = "TITLE \"\(pulito)\"\n# Creata con Colors\n\nLUT_3D_SIZE \(size)\n\n"
+        var s = "TITLE \"\(pulito)\"\n# Created with Colors\n\nLUT_3D_SIZE \(size)\n\n"
         s.reserveCapacity(s.count + dati.count * 28)
         for c in dati {
             s += String(format: "%.6f %.6f %.6f\n", c.x, c.y, c.z)

@@ -57,23 +57,23 @@ struct SchermoIntero: View {
     private var barraComandi: some View {
         VStack {
             HStack(spacing: 10) {
-                bottone("xmark") { chiudi() }.accessibilityLabel("Chiudi schermo intero")
+                bottone("xmark") { chiudi() }.accessibilityLabel("Close full screen")
                 VStack(alignment: .leading, spacing: 0) {
                     Text(studio.nomeClip).font(.caption.weight(.semibold)).lineLimit(1)
                     if zoom > 1.01 { Text(String(format: "Zoom %.1f×", zoom)).font(.system(size: 10)).foregroundStyle(Tema.testo2) }
                 }
                 Spacer()
                 Button { bypass.toggle() } label: {
-                    Text(bypass ? "PRIMA" : "DOPO").font(.system(size: 11, weight: .bold))
+                    Text(bypass ? "BEFORE" : "AFTER").font(.system(size: 11, weight: .bold))
                         .padding(.horizontal, 10).frame(height: 36)
                         .background(Capsule().fill(bypass ? Tema.accento : Color.black.opacity(0.6)))
                         .foregroundStyle(bypass ? .black : .white)
                 }
-                .accessibilityLabel("Confronta prima e dopo")
+                .accessibilityLabel("Compare before and after")
                 bottone(ruota ? "rectangle.portrait" : "rectangle.landscape.rotate") {
                     withAnimation(.easeInOut(duration: 0.25)) { ruota.toggle(); centra(); zoom = 1; zoomInizio = 1 }
                 }
-                .accessibilityLabel("Ruota")
+                .accessibilityLabel("Rotate")
             }
             .padding(.horizontal, 14).padding(.top, 58)
             Spacer()
@@ -88,7 +88,7 @@ struct SchermoIntero: View {
                 }
                 .padding(.horizontal, 14).padding(.bottom, 40)
             } else {
-                Text("Due dita per lo zoom · doppio tocco per tornare intero · tocco per nascondere i comandi")
+                Text("Pinch to zoom · double-tap to fit · tap to hide the controls")
                     .font(.system(size: 10)).foregroundStyle(Tema.testo2)
                     .padding(.bottom, 36)
             }

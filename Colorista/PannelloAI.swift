@@ -5,25 +5,25 @@ struct PannelloAI: View {
     @ObservedObject var studio: Studio
     @State private var descrizione = ""
     @FocusState private var scrivendo: Bool
-    private let esempi = ["Tramonto caldo anni '70", "Thriller freddo e cupo", "Estate pastello", "Noir in bianco e nero", "Blockbuster teal e arancio", "Pellicola sbiadita vintage"]
+    private let esempi = ["Warm '70s sunset", "Cold, gloomy thriller", "Pastel summer", "Black and white noir", "Teal and orange blockbuster", "Faded vintage film"]
 
     var body: some View {
         VStack(spacing: 10) {
-            Sezione(titolo: "Auto colore") {
+            Sezione(titolo: "Auto color") {
                 Button { studio.autoColoreAI() } label: {
-                    Label("Correggi con l'AI", systemImage: "wand.and.stars")
+                    Label("Grade with AI", systemImage: "wand.and.stars")
                         .font(.subheadline.weight(.semibold))
                         .frame(maxWidth: .infinity).frame(height: 40)
                         .background(RoundedRectangle(cornerRadius: 8).fill(Tema.accento))
                         .foregroundStyle(.black)
                 }
                 .buttonStyle(StilePulsante())
-                Text("Analizza esposizione, dominante di colore e volti e aggiunge un nodo \"Auto AI\" con curva, ombre/luci, bilanciamento e vivacità. Puoi ritoccarlo nelle altre palette o spegnerlo. Premuto su un nodo Auto AI lo ricalcola.")
+                Text("Analyzes exposure, color cast and faces and adds an \"Auto AI\" node with curve, shadows/highlights, balance and vibrance. You can fine-tune it in the other palettes or turn it off. Pressing it on an Auto AI node recalculates it.")
                     .font(.caption2).foregroundStyle(Tema.testo2)
             }
-            Sezione(titolo: "Look descritto a parole (Apple Intelligence)") {
+            Sezione(titolo: "Look described in words (Apple Intelligence)") {
                 HStack(spacing: 8) {
-                    TextField("Descrivi il look…", text: $descrizione, axis: .vertical)
+                    TextField("Describe the look…", text: $descrizione, axis: .vertical)
                         .lineLimit(1...3)
                         .textFieldStyle(.roundedBorder)
                         .focused($scrivendo)
@@ -53,15 +53,15 @@ struct PannelloAI: View {
                 if let l = studio.lavoro {
                     HStack { ProgressView(); Text(l).font(.caption) }
                 }
-                Text(LookAParole.motivoNonDisponibile ?? "Il modello gira sull'iPhone, senza internet. Crea un nodo con il nome del look: puoi ritoccarlo come gli altri.")
+                Text(LookAParole.motivoNonDisponibile ?? "The model runs on the iPhone, without internet. It creates a node named after the look: you can fine-tune it like the others.")
                     .font(.caption2).foregroundStyle(LookAParole.motivoNonDisponibile == nil ? Tema.testo2 : Tema.accento)
             }
             Sezione(titolo: "Magic Mask AI") {
                 HStack(spacing: 8) {
-                    bottoneMaschera("Soggetto", "person.and.background.dotted", .soggetto)
-                    bottoneMaschera("Sfondo", "rectangle.dashed", .fuoriSoggetto)
+                    bottoneMaschera("Subject", "person.and.background.dotted", .soggetto)
+                    bottoneMaschera("Background", "rectangle.dashed", .fuoriSoggetto)
                 }
-                Text("Crea un nodo che corregge solo il soggetto in primo piano (o solo lo sfondo). Poi regolalo con Primarie, Curve…")
+                Text("Creates a node that grades only the subject in the foreground (or only the background). Then adjust it with Primaries, Curves…")
                     .font(.caption2).foregroundStyle(Tema.testo2)
             }
         }
@@ -77,7 +77,7 @@ struct PannelloAI: View {
         Button {
             studio.aggiungi(.correzione)
             studio.nodi[studio.indice].magic = m
-            studio.nodi[studio.indice].nome = m == .soggetto ? "Soggetto AI" : "Sfondo AI"
+            studio.nodi[studio.indice].nome = m == .soggetto ? "AI subject" : "AI background"
             studio.mostraMaschera = true
         } label: {
             Label(titolo, systemImage: icona).font(.subheadline.weight(.semibold))

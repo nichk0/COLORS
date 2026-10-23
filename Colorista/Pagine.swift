@@ -63,9 +63,9 @@ struct PaginaMedia: View {
                 HStack(spacing: 8) {
                     Image(systemName: "folder.fill").foregroundStyle(Tema.accento)
                     Text(studio.progetto.nome).font(.subheadline.weight(.semibold)).lineLimit(1)
-                    Text("· \(studio.progetto.clips.count) clip").font(.caption).foregroundStyle(Tema.testo2)
+                    Text("· \(studio.progetto.clips.count) clips").font(.caption).foregroundStyle(Tema.testo2)
                     Spacer()
-                    Label("Progetti", systemImage: "square.grid.2x2").font(.caption.weight(.semibold))
+                    Label("Projects", systemImage: "square.grid.2x2").font(.caption.weight(.semibold))
                         .padding(.horizontal, 10).frame(height: 28)
                         .background(Capsule().fill(Tema.campo))
                 }
@@ -75,17 +75,17 @@ struct PaginaMedia: View {
             .buttonStyle(.plain)
             HStack(spacing: 10) {
               if selezionando {
-                Button(scelte.count == studio.progetto.clips.count ? "Nessuna" : "Tutte") {
+                Button(scelte.count == studio.progetto.clips.count ? "None" : "All") {
                     scelte = scelte.count == studio.progetto.clips.count ? [] : Set(studio.progetto.clips.map(\.id))
                 }
                 .font(.subheadline.weight(.semibold))
                 Spacer()
-                Text(scelte.isEmpty ? "Tocca le clip da togliere" : scelte.count == 1 ? "1 scelta" : "\(scelte.count) scelte").font(.caption).foregroundStyle(Tema.testo2)
+                Text(scelte.isEmpty ? "Tap the clips to remove" : scelte.count == 1 ? "1 selected" : "\(scelte.count) selected").font(.caption).foregroundStyle(Tema.testo2)
                 Spacer()
-                Button("Fine") { selezionando = false; scelte = [] }.font(.subheadline.weight(.semibold))
+                Button("Done") { selezionando = false; scelte = [] }.font(.subheadline.weight(.semibold))
               } else {
                 Button(action: apriLibreria) {
-                    Label("Libreria foto", systemImage: "photo.on.rectangle").font(.subheadline.weight(.semibold))
+                    Label("Photo Library", systemImage: "photo.on.rectangle").font(.subheadline.weight(.semibold))
                         .padding(.horizontal, 12).frame(height: 36)
                         .background(RoundedRectangle(cornerRadius: 8).fill(Tema.accento))
                         .foregroundStyle(.black)
@@ -98,7 +98,7 @@ struct PaginaMedia: View {
                 .buttonStyle(.plain)
                 Spacer()
                 if !studio.progetto.clips.isEmpty {
-                    Button("Seleziona") { selezionando = true }.font(.subheadline.weight(.semibold))
+                    Button("Select") { selezionando = true }.font(.subheadline.weight(.semibold))
                 }
               }
             }
@@ -109,8 +109,8 @@ struct PaginaMedia: View {
             if studio.progetto.clips.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "photo.stack").font(.system(size: 44)).foregroundStyle(Tema.testo2)
-                    Text("Il progetto è vuoto").font(.headline)
-                    Text("Importa foto e video dalla Libreria o da File (anche da un SSD esterno).")
+                    Text("The project is empty").font(.headline)
+                    Text("Import photos and videos from the Library or from Files (an external SSD too).")
                         .font(.caption).foregroundStyle(Tema.testo2).multilineTextAlignment(.center)
                 }
                 .padding(30)
@@ -126,7 +126,7 @@ struct PaginaMedia: View {
                 }
                 if selezionando {
                     Button(role: .destructive) { confermaTogli = true } label: {
-                        Label(scelte.isEmpty ? "Togli dal progetto" : "Togli \(scelte.count) dal progetto", systemImage: "trash")
+                        Label(scelte.isEmpty ? "Remove from project" : "Remove \(scelte.count) from project", systemImage: "trash")
                             .font(.subheadline.weight(.semibold))
                             .frame(maxWidth: .infinity).frame(height: 44)
                             .background(RoundedRectangle(cornerRadius: 10).fill(scelte.isEmpty ? Tema.campo : Color.red.opacity(0.85)))
@@ -141,13 +141,13 @@ struct PaginaMedia: View {
         }
         .background(Tema.sfondo)
         .sheet(isPresented: $mostraProgetti) { SchedaProgetti(studio: studio) }
-        .confirmationDialog("Togliere \(scelte.count) clip dal progetto?", isPresented: $confermaTogli, titleVisibility: .visible) {
-            Button("Togli \(scelte.count) clip", role: .destructive) {
+        .confirmationDialog("Remove \(scelte.count) clips from the project?", isPresented: $confermaTogli, titleVisibility: .visible) {
+            Button("Remove \(scelte.count) clips", role: .destructive) {
                 let ids = scelte
                 Task { await studio.eliminaClips(ids); scelte = []; selezionando = false }
             }
         } message: {
-            Text("Le clip e le loro correzioni spariscono dal progetto. Le foto e i video nella Libreria non vengono toccati.")
+            Text("The clips and their grades disappear from the project. The photos and videos in the Library are not touched.")
         }
     }
 
@@ -191,9 +191,9 @@ struct PaginaMedia: View {
             }
         }
         .contextMenu {
-            Button { Task { await studio.apriClip(c.id); apriInColor() } } label: { Label("Apri in Color", systemImage: "circle.lefthalf.filled") }
-            Button { studio.duplicaClip(c.id) } label: { Label("Duplica", systemImage: "plus.square.on.square") }
-            Button(role: .destructive) { Task { await studio.eliminaClip(c.id) } } label: { Label("Togli dal progetto", systemImage: "trash") }
+            Button { Task { await studio.apriClip(c.id); apriInColor() } } label: { Label("Open in Color", systemImage: "circle.lefthalf.filled") }
+            Button { studio.duplicaClip(c.id) } label: { Label("Duplicate", systemImage: "plus.square.on.square") }
+            Button(role: .destructive) { Task { await studio.eliminaClip(c.id) } } label: { Label("Remove from project", systemImage: "trash") }
         }
     }
 }
@@ -213,46 +213,46 @@ struct SchedaProgetti: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Aperto") {
+                Section("Open") {
                     riga(studio.progetto, aperto: true)
-                        .swipeActions { Button("Rinomina") { nomeModificato = studio.progetto.nome; rinomina = true }.tint(Tema.accento) }
-                    Button { nomeModificato = studio.progetto.nome; rinomina = true } label: { Label("Rinomina", systemImage: "pencil") }
+                        .swipeActions { Button("Rename") { nomeModificato = studio.progetto.nome; rinomina = true }.tint(Tema.accento) }
+                    Button { nomeModificato = studio.progetto.nome; rinomina = true } label: { Label("Rename", systemImage: "pencil") }
                 }
                 Section {
-                    Button { nomeNuovo = ""; chiediNuovo = true } label: { Label("Nuovo progetto", systemImage: "plus.circle.fill") }
+                    Button { nomeNuovo = ""; chiediNuovo = true } label: { Label("New project", systemImage: "plus.circle.fill") }
                         .font(.headline)
                 }
-                Section(studio.progettiSalvati.isEmpty ? "Nessun altro progetto" : "Altri progetti") {
+                Section(studio.progettiSalvati.isEmpty ? "No other projects" : "Other projects") {
                     ForEach(studio.progettiSalvati, id: \.id) { p in
                         Button {
                             Task { await studio.apriProgetto(p.id); chiudi() }
                         } label: { riga(p, aperto: false) }
                         .buttonStyle(.plain)
-                        .swipeActions { Button("Elimina", role: .destructive) { daEliminare = p } }
+                        .swipeActions { Button("Delete", role: .destructive) { daEliminare = p } }
                         .contextMenu {
-                            Button { Task { await studio.apriProgetto(p.id); chiudi() } } label: { Label("Apri", systemImage: "folder") }
-                            Button(role: .destructive) { daEliminare = p } label: { Label("Elimina", systemImage: "trash") }
+                            Button { Task { await studio.apriProgetto(p.id); chiudi() } } label: { Label("Open", systemImage: "folder") }
+                            Button(role: .destructive) { daEliminare = p } label: { Label("Delete", systemImage: "trash") }
                         }
                     }
                 }
             }
-            .navigationTitle("Progetti")
+            .navigationTitle("Projects")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Fine") { chiudi() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { chiudi() } } }
             .onAppear { studio.aggiornaElencoProgetti() }
-            .alert("Nuovo progetto", isPresented: $chiediNuovo) {
-                TextField("Nome", text: $nomeNuovo)
-                Button("Annulla", role: .cancel) {}
-                Button("Crea") { let n = nomeNuovo; Task { await studio.nuovoProgetto(nome: n); chiudi() } }
-            } message: { Text("Il progetto aperto viene salvato nell'elenco: lo ritrovi qui.") }
-            .alert("Rinomina progetto", isPresented: $rinomina) {
-                TextField("Nome", text: $nomeModificato)
-                Button("Annulla", role: .cancel) {}
+            .alert("New project", isPresented: $chiediNuovo) {
+                TextField("Name", text: $nomeNuovo)
+                Button("Cancel", role: .cancel) {}
+                Button("Create") { let n = nomeNuovo; Task { await studio.nuovoProgetto(nome: n); chiudi() } }
+            } message: { Text("The open project is saved to the list: you'll find it here.") }
+            .alert("Rename project", isPresented: $rinomina) {
+                TextField("Name", text: $nomeModificato)
+                Button("Cancel", role: .cancel) {}
                 Button("OK") { studio.rinominaProgetto(nomeModificato) }
             }
-            .confirmationDialog("Eliminare «\(daEliminare?.nome ?? "")»?", isPresented: Binding(get: { daEliminare != nil }, set: { if !$0 { daEliminare = nil } }), titleVisibility: .visible) {
-                Button("Elimina progetto", role: .destructive) { if let p = daEliminare { studio.eliminaProgetto(p.id) }; daEliminare = nil }
-            } message: { Text("Si cancellano le clip importate e le correzioni di questo progetto. Le foto e i video nella Libreria non vengono toccati.") }
+            .confirmationDialog("Delete «\(daEliminare?.nome ?? "")»?", isPresented: Binding(get: { daEliminare != nil }, set: { if !$0 { daEliminare = nil } }), titleVisibility: .visible) {
+                Button("Delete project", role: .destructive) { if let p = daEliminare { studio.eliminaProgetto(p.id) }; daEliminare = nil }
+            } message: { Text("The imported clips and the grades of this project are deleted. The photos and videos in the Library are not touched.") }
         }
         .preferredColorScheme(.dark)
         .tint(Tema.accento)
@@ -270,7 +270,7 @@ struct SchedaProgetti: View {
             .frame(width: 64, height: 40).clipShape(RoundedRectangle(cornerRadius: 5))
             VStack(alignment: .leading, spacing: 2) {
                 Text(p.nome).font(.subheadline.weight(.semibold)).lineLimit(1)
-                Text("\(p.clips.count) clip · \(p.modificato.formatted(date: .abbreviated, time: .shortened))")
+                Text("\(p.clips.count) clips · \(p.modificato.formatted(date: .abbreviated, time: .shortened))")
                     .font(.caption).foregroundStyle(Tema.testo2)
             }
             Spacer()
@@ -359,7 +359,7 @@ struct TimelineEdit: View {
                     .onChanged { v in zoom = min(max((zoomInizio > 0 ? zoomInizio : pps) * v.magnification, 3), 200) }
                     .onEnded { _ in zoomInizio = zoom })
 
-                Picker("Strumento", selection: $strumento) {
+                Picker("Tool", selection: $strumento) {
                     ForEach(StrumentoEdit.allCases) { Image(systemName: $0.icona).tag($0) }
                 }
                 .pickerStyle(.segmented)
@@ -372,9 +372,9 @@ struct TimelineEdit: View {
                 .background(Tema.sfondo)
             }
         }
-        .alert("Rinomina clip", isPresented: Binding(get: { rinomina != nil }, set: { if !$0 { rinomina = nil } })) {
-            TextField("Nome", text: $nuovoNome)
-            Button("Annulla", role: .cancel) {}
+        .alert("Rename clip", isPresented: Binding(get: { rinomina != nil }, set: { if !$0 { rinomina = nil } })) {
+            TextField("Name", text: $nuovoNome)
+            Button("Cancel", role: .cancel) {}
             Button("OK") { if let c = rinomina { studio.rinominaClip(c.id, nuovoNome) } }
         }
         .fileImporter(isPresented: $mostraMusica, allowedContentTypes: [.audio, .mp3, .mpeg4Audio, .wav, .aiff, .movie, .item], allowsMultipleSelection: true) { r in
@@ -400,7 +400,7 @@ struct TimelineEdit: View {
                 bottone("pencil") { nuovoNome = c.nome; rinomina = c }
                 bottone("trash", rosso: true) { Task { await studio.eliminaClip(c.id); studio.aggiornaSequenza() } }
             } else {
-                Text(studio.progetto.clips.isEmpty ? "La timeline è vuota: importa le clip dalla pagina Media." : "Tocca una clip nella timeline")
+                Text(studio.progetto.clips.isEmpty ? "The timeline is empty: import clips from the Media page." : "Tap a clip in the timeline")
                     .font(.caption).foregroundStyle(Tema.testo2)
                 Spacer()
             }
@@ -460,7 +460,7 @@ struct TimelineEdit: View {
     private func pistaMusica(_ pps: Double) -> some View {
         if studio.progetto.musiche.isEmpty {
             Button { strumento = .audio } label: {
-                Label("A1 · aggiungi musica o audio", systemImage: "plus").font(.system(size: 9, weight: .semibold))
+                Label("A1 · add music or audio", systemImage: "plus").font(.system(size: 9, weight: .semibold))
                     .padding(.horizontal, 6).frame(height: 22)
                     .background(RoundedRectangle(cornerRadius: 3).stroke(Tema.testo2, style: StrokeStyle(lineWidth: 1, dash: [3, 3])))
                     .foregroundStyle(Tema.testo2)
@@ -581,7 +581,7 @@ struct TimelineEdit: View {
 }
 
 enum StrumentoEdit: String, CaseIterable, Identifiable {
-    case taglio = "Taglio", velocita = "Velocità", audio = "Audio", transizione = "Transizione", titolo = "Titolo", inquadra = "Inquadra", stabilizza = "Stabilizza"
+    case taglio = "Trim", velocita = "Speed", audio = "Audio", transizione = "Transition", titolo = "Title", inquadra = "Frame", stabilizza = "Stabilize"
     var id: String { rawValue }
     var icona: String {
         switch self {
@@ -610,7 +610,7 @@ struct PannelloStrumentoEdit: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(strumento.rawValue).font(.caption.weight(.semibold)).foregroundStyle(Tema.testo2)
             if studio.clipCorrente == nil && strumento != .audio {
-                Text("Seleziona una clip nella timeline.").font(.caption).foregroundStyle(Tema.testo2)
+                Text("Select a clip in the timeline.").font(.caption).foregroundStyle(Tema.testo2)
             } else {
                 switch strumento {
                 case .taglio: taglio
@@ -632,25 +632,25 @@ struct PannelloStrumentoEdit: View {
         if video {
             let d = max(studio.durataFileCorrente, 0.2)
             let fine = min(m.wrappedValue.fine ?? d, d)
-            Regolazione(nome: "Inizio (s)", valore: Binding(get: { Float(m.wrappedValue.inizio) }, set: { m.wrappedValue.inizio = Double(min($0, Float(fine) - 0.1)) }),
+            Regolazione(nome: "Start (s)", valore: Binding(get: { Float(m.wrappedValue.inizio) }, set: { m.wrappedValue.inizio = Double(min($0, Float(fine) - 0.1)) }),
                         intervallo: 0...Float(d), base: 0, formato: "%.2f")
-            Regolazione(nome: "Fine (s)", valore: Binding(get: { Float(fine) }, set: { v in
+            Regolazione(nome: "End (s)", valore: Binding(get: { Float(fine) }, set: { v in
                 let x = Double(max(v, Float(m.wrappedValue.inizio) + 0.1)); m.wrappedValue.fine = x >= d - 0.01 ? nil : x }),
                         intervallo: 0...Float(d), base: Float(d), formato: "%.2f")
-            Text(String(format: "Nella timeline dura %.2f s (file %.2f s).", Sequenza.durata(m.wrappedValue, video: true, durataFile: d), d))
+            Text(String(format: "In the timeline it lasts %.2f s (file %.2f s).", Sequenza.durata(m.wrappedValue, video: true, durataFile: d), d))
                 .font(.caption2).foregroundStyle(Tema.testo2)
             HStack(spacing: 8) {
                 Button {
                     // taglia in due alla testina: la parte dopo diventa una nuova clip
                     studio.dividiAllaTestina()
                 } label: {
-                    Label("Dividi alla testina", systemImage: "scissors").font(.caption.weight(.semibold))
+                    Label("Split at playhead", systemImage: "scissors").font(.caption.weight(.semibold))
                         .frame(maxWidth: .infinity).frame(height: 34)
                         .background(RoundedRectangle(cornerRadius: 7).fill(Tema.campo))
                 }
                 .buttonStyle(.plain)
                 Button { Task { await studio.dividiPerScene() } } label: {
-                    Label("Dividi per scene (AI)", systemImage: "wand.and.stars").font(.caption.weight(.semibold))
+                    Label("Split by scenes (AI)", systemImage: "wand.and.stars").font(.caption.weight(.semibold))
                         .frame(maxWidth: .infinity).frame(height: 34)
                         .background(RoundedRectangle(cornerRadius: 7).fill(Tema.accento)).foregroundStyle(.black)
                 }
@@ -659,7 +659,7 @@ struct PannelloStrumentoEdit: View {
             }
             if let l = studio.lavoro { HStack { ProgressView(); Text(l).font(.caption) } }
         } else {
-            Regolazione(nome: "Durata della foto (s)", valore: Binding(get: { Float(m.wrappedValue.durataFoto) }, set: { m.wrappedValue.durataFoto = Double($0) }),
+            Regolazione(nome: "Photo duration (s)", valore: Binding(get: { Float(m.wrappedValue.durataFoto) }, set: { m.wrappedValue.durataFoto = Double($0) }),
                         intervallo: 0.5...15, base: 3, formato: "%.1f")
         }
     }
@@ -680,12 +680,12 @@ struct PannelloStrumentoEdit: View {
                     .buttonStyle(.plain)
                 }
             }
-            Regolazione(nome: "Velocità precisa", valore: Binding(get: { Float(m.wrappedValue.velocita) }, set: { m.wrappedValue.velocita = Double($0) }),
+            Regolazione(nome: "Precise speed", valore: Binding(get: { Float(m.wrappedValue.velocita) }, set: { m.wrappedValue.velocita = Double($0) }),
                         intervallo: 0.1...8, base: 1, formato: "%.2f×")
-            Text("Sotto 1× rallentatore (più fluido se giri a 60 o 120 fps), sopra 1× accelerato. L'audio cambia velocità senza cambiare tono.")
+            Text("Below 1× slow motion (smoother if you shoot at 60 or 120 fps), above 1× fast. The audio changes speed without changing pitch.")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         } else {
-            Text("La velocità vale per i video. Per una foto cambia la durata in Taglio.").font(.caption).foregroundStyle(Tema.testo2)
+            Text("Speed applies to videos. For a photo change the duration in Trim.").font(.caption).foregroundStyle(Tema.testo2)
         }
     }
 
@@ -693,15 +693,15 @@ struct PannelloStrumentoEdit: View {
 
     @ViewBuilder private var audio: some View {
         if studio.clipCorrente != nil && video {
-            Sezione(titolo: "Audio della clip") {
+            Sezione(titolo: "Clip audio") {
                 Regolazione(nome: "Volume", valore: m.volume, intervallo: 0...2, base: 1, formato: "%.2f")
                 HStack(spacing: 12) {
-                    Regolazione(nome: "Entrata (s)", valore: Binding(get: { Float(m.wrappedValue.audioEntrata) }, set: { m.wrappedValue.audioEntrata = Double($0) }), intervallo: 0...5, base: 0, formato: "%.1f")
-                    Regolazione(nome: "Uscita (s)", valore: Binding(get: { Float(m.wrappedValue.audioUscita) }, set: { m.wrappedValue.audioUscita = Double($0) }), intervallo: 0...5, base: 0, formato: "%.1f")
+                    Regolazione(nome: "Fade in (s)", valore: Binding(get: { Float(m.wrappedValue.audioEntrata) }, set: { m.wrappedValue.audioEntrata = Double($0) }), intervallo: 0...5, base: 0, formato: "%.1f")
+                    Regolazione(nome: "Fade out (s)", valore: Binding(get: { Float(m.wrappedValue.audioUscita) }, set: { m.wrappedValue.audioUscita = Double($0) }), intervallo: 0...5, base: 0, formato: "%.1f")
                 }
             }
         }
-        Sezione(titolo: "Musica e audio di sottofondo") {
+        Sezione(titolo: "Music and background audio") {
             ForEach(Array(studio.progetto.musiche.enumerated()), id: \.element.id) { i, mu in
                 let scelta = studio.musicaScelta == mu.id
                 VStack(spacing: 6) {
@@ -724,24 +724,24 @@ struct PannelloStrumentoEdit: View {
             }
             HStack(spacing: 8) {
                 Button { mostraMusica = true } label: {
-                    Label("Da File", systemImage: "folder").font(.caption.weight(.semibold))
+                    Label("From Files", systemImage: "folder").font(.caption.weight(.semibold))
                         .frame(maxWidth: .infinity).frame(height: 34)
                         .background(RoundedRectangle(cornerRadius: 6).fill(Tema.campo))
                 }
                 .buttonStyle(.plain)
                 Button { mostraAudioLibreria = true } label: {
-                    Label("Audio dei video (Libreria)", systemImage: "video").font(.caption.weight(.semibold))
+                    Label("Audio from videos (Library)", systemImage: "video").font(.caption.weight(.semibold))
                         .frame(maxWidth: .infinity).frame(height: 34)
                         .background(RoundedRectangle(cornerRadius: 6).fill(Tema.campo))
                 }
                 .buttonStyle(.plain)
             }
             if !studio.progetto.musiche.isEmpty {
-                Regolazione(nome: "Sfumatura finale (s)", valore: Binding(get: { Float(studio.dissolvenzaMusica) }, set: { studio.dissolvenzaMusica = Double($0) }), intervallo: 0...8, base: 2, formato: "%.1f")
-                Toggle("Ricomincia se è più corta del montaggio", isOn: Binding(get: { studio.ripetiMusica }, set: { studio.ripetiMusica = $0 }))
+                Regolazione(nome: "Final fade (s)", valore: Binding(get: { Float(studio.dissolvenzaMusica) }, set: { studio.dissolvenzaMusica = Double($0) }), intervallo: 0...8, base: 2, formato: "%.1f")
+                Toggle("Loop if shorter than the edit", isOn: Binding(get: { studio.ripetiMusica }, set: { studio.ripetiMusica = $0 }))
                     .tint(Tema.accento).font(.caption)
             }
-            Text("Le tracce suonano una dopo l'altra. Tocca una traccia per tagliarla; per cambiare l'ordine tienila premuta nella timeline e trascinala. Per togliere un pezzo nel mezzo: dividi due volte e cancella la parte in mezzo.")
+            Text("Tracks play one after another. Tap a track to trim it; to change the order hold it in the timeline and drag it. To remove a piece in the middle: split twice and delete the middle part.")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         }
     }
@@ -751,30 +751,30 @@ struct PannelloStrumentoEdit: View {
         let df = studio.durateFile[mu.file] ?? 0
         if df > 0 {
             let fine = min(mu.fine ?? df, df)
-            Regolazione(nome: "Inizio (s)", valore: Binding(get: { Float(mu.inizio) }, set: { v in
+            Regolazione(nome: "Start (s)", valore: Binding(get: { Float(mu.inizio) }, set: { v in
                 studio.modificaMusica(mu.id) { $0.inizio = Double(min(v, Float(fine) - 0.5)) } }),
                         intervallo: 0...Float(df), base: 0, formato: "%.1f")
-            Regolazione(nome: "Fine (s)", valore: Binding(get: { Float(fine) }, set: { v in
+            Regolazione(nome: "End (s)", valore: Binding(get: { Float(fine) }, set: { v in
                 studio.modificaMusica(mu.id) { m in let x = Double(max(v, Float(m.inizio) + 0.5)); m.fine = x >= df - 0.05 ? nil : x } }),
                         intervallo: 0...Float(df), base: Float(df), formato: "%.1f")
             HStack(spacing: 12) {
-                Regolazione(nome: "Entrata (s)", valore: Binding(get: { Float(mu.entrata) }, set: { v in studio.modificaMusica(mu.id) { $0.entrata = Double(v) } }),
+                Regolazione(nome: "Fade in (s)", valore: Binding(get: { Float(mu.entrata) }, set: { v in studio.modificaMusica(mu.id) { $0.entrata = Double(v) } }),
                             intervallo: 0...5, base: 0, formato: "%.1f")
-                Regolazione(nome: "Uscita (s)", valore: Binding(get: { Float(mu.uscita) }, set: { v in studio.modificaMusica(mu.id) { $0.uscita = Double(v) } }),
+                Regolazione(nome: "Fade out (s)", valore: Binding(get: { Float(mu.uscita) }, set: { v in studio.modificaMusica(mu.id) { $0.uscita = Double(v) } }),
                             intervallo: 0...5, base: 0, formato: "%.1f")
             }
             HStack {
-                Text(String(format: "Usi %.1f s di %.1f s", mu.durata(file: df), df)).font(.caption2).foregroundStyle(Tema.testo2)
+                Text(String(format: "Using %.1f s of %.1f s", mu.durata(file: df), df)).font(.caption2).foregroundStyle(Tema.testo2)
                 Spacer()
                 Button { studio.dividiMusicaAllaTestina(mu.id) } label: {
-                    Label("Dividi alla testina", systemImage: "scissors").font(.caption.weight(.semibold))
+                    Label("Split at playhead", systemImage: "scissors").font(.caption.weight(.semibold))
                         .padding(.horizontal, 10).frame(height: 30)
                         .background(RoundedRectangle(cornerRadius: 6).fill(Tema.sfondo))
                 }
                 .buttonStyle(.plain)
             }
         } else {
-            HStack { ProgressView().controlSize(.small); Text("Leggo la durata…").font(.caption2).foregroundStyle(Tema.testo2) }
+            HStack { ProgressView().controlSize(.small); Text("Reading duration…").font(.caption2).foregroundStyle(Tema.testo2) }
         }
     }
 
@@ -783,9 +783,9 @@ struct PannelloStrumentoEdit: View {
     @ViewBuilder private var transizione: some View {
         let ultima = studio.progetto.clips.last?.id == studio.clipAttiva
         if ultima {
-            Text("È l'ultima clip: la transizione si mette tra una clip e la successiva.").font(.caption).foregroundStyle(Tema.testo2)
+            Text("This is the last clip: a transition goes between a clip and the next one.").font(.caption).foregroundStyle(Tema.testo2)
         } else {
-            Text("Verso la clip successiva:").font(.caption)
+            Text("To the next clip:").font(.caption)
             ForEach(Transizione.allCases) { t in
                 Button { m.wrappedValue.transizione = t } label: {
                     HStack {
@@ -799,35 +799,35 @@ struct PannelloStrumentoEdit: View {
                 .buttonStyle(.plain)
             }
             if m.wrappedValue.transizione != .nessuna {
-                Regolazione(nome: "Durata (s)", valore: Binding(get: { Float(m.wrappedValue.durataTransizione) }, set: { m.wrappedValue.durataTransizione = Double($0) }), intervallo: 0.1...3, base: 0.6, formato: "%.1f")
+                Regolazione(nome: "Duration (s)", valore: Binding(get: { Float(m.wrappedValue.durataTransizione) }, set: { m.wrappedValue.durataTransizione = Double($0) }), intervallo: 0.1...3, base: 0.6, formato: "%.1f")
             }
-            Text("Le dissolvenze sfumano anche l'audio tra le due clip.").font(.caption2).foregroundStyle(Tema.testo2)
+            Text("Dissolves also crossfade the audio between the two clips.").font(.caption2).foregroundStyle(Tema.testo2)
         }
     }
 
     // MARK: titolo
 
     @ViewBuilder private var titolo: some View {
-        TextField("Scrivi il titolo…", text: m.titolo.testo, axis: .vertical)
+        TextField("Type the title…", text: m.titolo.testo, axis: .vertical)
             .textFieldStyle(.roundedBorder)
             .lineLimit(1...3)
         if !m.wrappedValue.titolo.testo.isEmpty {
-            Picker("Colore", selection: m.titolo.colore) {
+            Picker("Color", selection: m.titolo.colore) {
                 ForEach(Titolo.Colore.allCases) { Text($0.rawValue).tag($0) }
             }
             .pickerStyle(.segmented)
             HStack(spacing: 12) {
-                Regolazione(nome: "Grandezza", valore: m.titolo.dimensione, intervallo: 0.03...0.2, base: 0.07, formato: "%.2f")
-                Regolazione(nome: "Posizione", valore: m.titolo.posizione, intervallo: 0.05...0.95, base: 0.82, formato: "%.2f")
+                Regolazione(nome: "Size", valore: m.titolo.dimensione, intervallo: 0.03...0.2, base: 0.07, formato: "%.2f")
+                Regolazione(nome: "Position", valore: m.titolo.posizione, intervallo: 0.05...0.95, base: 0.82, formato: "%.2f")
             }
             HStack {
-                Toggle("Grassetto", isOn: m.titolo.grassetto)
-                Toggle("Fascia scura", isOn: m.titolo.sfondo)
+                Toggle("Bold", isOn: m.titolo.grassetto)
+                Toggle("Dark band", isOn: m.titolo.sfondo)
             }
             .tint(Tema.accento).font(.caption)
-            Button(role: .destructive) { m.wrappedValue.titolo = Titolo() } label: { Label("Togli titolo", systemImage: "trash") }.font(.caption)
+            Button(role: .destructive) { m.wrappedValue.titolo = Titolo() } label: { Label("Remove title", systemImage: "trash") }.font(.caption)
         }
-        Text("Il titolo resta per tutta la clip ed entra ed esce sfumando. Posizione: 0 in alto, 1 in basso.")
+        Text("The title stays for the whole clip and fades in and out. Position: 0 top, 1 bottom.")
             .font(.caption2).foregroundStyle(Tema.testo2)
         sottotitoli
     }
@@ -835,12 +835,12 @@ struct PannelloStrumentoEdit: View {
     // MARK: sottotitoli automatici (AI)
 
     @ViewBuilder private var sottotitoli: some View {
-        Sezione(titolo: "Sottotitoli automatici (AI)") {
+        Sezione(titolo: "Automatic captions (AI)") {
             if !video {
-                Text("I sottotitoli si creano dal parlato dei video.").font(.caption).foregroundStyle(Tema.testo2)
+                Text("Captions are created from the speech in the videos.").font(.caption).foregroundStyle(Tema.testo2)
             } else {
                 HStack {
-                    Picker("Lingua", selection: $studio.linguaSottotitoli) {
+                    Picker("Language", selection: $studio.linguaSottotitoli) {
                         ForEach(Trascrizione.lingue, id: \.codice) { Text($0.nome).tag($0.codice) }
                     }
                     .pickerStyle(.menu)
@@ -849,7 +849,7 @@ struct PannelloStrumentoEdit: View {
                         ProgressView().controlSize(.small); Text(l).font(.caption)
                     } else {
                         Button { Task { await studio.generaSottotitoli() } } label: {
-                            Label(m.wrappedValue.sottotitoli.isEmpty ? "Crea dal parlato" : "Rifai", systemImage: "captions.bubble")
+                            Label(m.wrappedValue.sottotitoli.isEmpty ? "Create from speech" : "Redo", systemImage: "captions.bubble")
                                 .font(.caption.weight(.semibold))
                                 .padding(.horizontal, 12).frame(height: 32)
                                 .background(RoundedRectangle(cornerRadius: 7).fill(Tema.accento)).foregroundStyle(.black)
@@ -858,14 +858,14 @@ struct PannelloStrumentoEdit: View {
                     }
                 }
                 if !m.wrappedValue.sottotitoli.isEmpty {
-                    Toggle("Mostra i sottotitoli", isOn: m.mostraSottotitoli).tint(Tema.accento).font(.caption)
-                    Picker("Colore", selection: m.stileSottotitoli.colore) {
+                    Toggle("Show captions", isOn: m.mostraSottotitoli).tint(Tema.accento).font(.caption)
+                    Picker("Color", selection: m.stileSottotitoli.colore) {
                         ForEach(Titolo.Colore.allCases) { Text($0.rawValue).tag($0) }
                     }
                     .pickerStyle(.segmented)
                     HStack(spacing: 12) {
-                        Regolazione(nome: "Grandezza", valore: m.stileSottotitoli.dimensione, intervallo: 0.03...0.1, base: 0.05, formato: "%.2f")
-                        Toggle("Fascia", isOn: m.stileSottotitoli.sfondo).tint(Tema.accento).font(.caption).frame(width: 110)
+                        Regolazione(nome: "Size", valore: m.stileSottotitoli.dimensione, intervallo: 0.03...0.1, base: 0.05, formato: "%.2f")
+                        Toggle("Band", isOn: m.stileSottotitoli.sfondo).tint(Tema.accento).font(.caption).frame(width: 110)
                     }
                     ForEach(m.sottotitoli) { $riga in
                         HStack(alignment: .top, spacing: 6) {
@@ -882,7 +882,7 @@ struct PannelloStrumentoEdit: View {
                         }
                     }
                 }
-                Text("Il parlato viene trascritto sull'iPhone. Puoi correggere ogni riga; il numero arancione porta la testina lì.")
+                Text("Speech is transcribed on the iPhone. You can correct every line; the orange number moves the playhead there.")
                     .font(.caption2).foregroundStyle(Tema.testo2)
             }
         }
@@ -900,33 +900,33 @@ struct PannelloStrumentoEdit: View {
     @ViewBuilder private var inquadra: some View {
         HStack(spacing: 8) {
             Button { m.wrappedValue.inquadratura.rotazione = (m.wrappedValue.inquadratura.rotazione + 90) % 360 } label: {
-                Label("Ruota 90°", systemImage: "rotate.right").font(.caption.weight(.semibold))
+                Label("Rotate 90°", systemImage: "rotate.right").font(.caption.weight(.semibold))
                     .padding(.horizontal, 10).frame(height: 32).background(RoundedRectangle(cornerRadius: 6).fill(Tema.campo))
             }
             .buttonStyle(.plain)
             Button { m.wrappedValue.inquadratura.specchio.toggle() } label: {
-                Label("Specchia", systemImage: "arrow.left.and.right.righttriangle.left.righttriangle.right").font(.caption.weight(.semibold))
+                Label("Mirror", systemImage: "arrow.left.and.right.righttriangle.left.righttriangle.right").font(.caption.weight(.semibold))
                     .padding(.horizontal, 10).frame(height: 32)
                     .background(RoundedRectangle(cornerRadius: 6).fill(m.wrappedValue.inquadratura.specchio ? Tema.accento.opacity(0.25) : Tema.campo))
             }
             .buttonStyle(.plain)
             Spacer()
-            Button("Azzera") { m.wrappedValue.inquadratura = Inquadratura() }.font(.caption).disabled(m.wrappedValue.inquadratura.neutra)
+            Button("Reset") { m.wrappedValue.inquadratura = Inquadratura() }.font(.caption).disabled(m.wrappedValue.inquadratura.neutra)
         }
         Regolazione(nome: "Zoom", valore: m.inquadratura.zoom, intervallo: 1...3, base: 1, formato: "%.2f×")
         HStack(spacing: 12) {
-            Regolazione(nome: "Orizzontale", valore: m.inquadratura.x, intervallo: -1...1, base: 0)
-            Regolazione(nome: "Verticale", valore: m.inquadratura.y, intervallo: -1...1, base: 0)
+            Regolazione(nome: "Horizontal", valore: m.inquadratura.x, intervallo: -1...1, base: 0)
+            Regolazione(nome: "Vertical", valore: m.inquadratura.y, intervallo: -1...1, base: 0)
         }
-        Text("Con lo zoom puoi ritagliare e spostare l'inquadratura. Rotazione \(m.wrappedValue.inquadratura.rotazione)°.")
+        Text("With zoom you can crop and move the framing. Rotation \(m.wrappedValue.inquadratura.rotazione)°.")
             .font(.caption2).foregroundStyle(Tema.testo2)
-        Sezione(titolo: "Reframe automatico 9:16 (AI)") {
+        Sezione(titolo: "Automatic 9:16 reframe (AI)") {
             if video {
                 if let l = studio.lavoro {
                     HStack { ProgressView(); Text(l).font(.caption) }
                 } else {
                     Button { Task { await studio.analizzaReframe() } } label: {
-                        Label(m.wrappedValue.reframe.isEmpty ? "Segui il soggetto" : "Analizza di nuovo", systemImage: "person.crop.rectangle")
+                        Label(m.wrappedValue.reframe.isEmpty ? "Follow the subject" : "Analyze again", systemImage: "person.crop.rectangle")
                             .font(.subheadline.weight(.semibold))
                             .frame(maxWidth: .infinity).frame(height: 38)
                             .background(RoundedRectangle(cornerRadius: 8).fill(Tema.accento)).foregroundStyle(.black)
@@ -934,11 +934,11 @@ struct PannelloStrumentoEdit: View {
                     .buttonStyle(.plain)
                 }
                 if !m.wrappedValue.reframe.isEmpty {
-                    Toggle("Segui il soggetto", isOn: m.seguiSoggetto).tint(Tema.accento).font(.caption)
+                    Toggle("Follow the subject", isOn: m.seguiSoggetto).tint(Tema.accento).font(.caption)
                 }
             }
-            Toggle("Anteprima verticale 9:16", isOn: $studio.anteprimaVerticale).tint(Tema.accento).font(.caption)
-            Text("Quando esporti in verticale (TikTok, Reel, Shorts) il taglio segue il soggetto invece di restare al centro. Non si usa se hai zoomato o ruotato a mano.")
+            Toggle("Vertical 9:16 preview", isOn: $studio.anteprimaVerticale).tint(Tema.accento).font(.caption)
+            Text("When you export vertically (TikTok, Reels, Shorts) the crop follows the subject instead of staying centered. Not used if you zoomed or rotated manually.")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         }
     }
@@ -951,7 +951,7 @@ struct PannelloStrumentoEdit: View {
                 HStack { ProgressView(); Text(l).font(.caption) }
             } else {
                 Button { Task { await studio.stabilizzaClip() } } label: {
-                    Label(m.wrappedValue.percorsoStab.isEmpty ? "Analizza e stabilizza" : "Analizza di nuovo", systemImage: "hand.raised")
+                    Label(m.wrappedValue.percorsoStab.isEmpty ? "Analyze and stabilize" : "Analyze again", systemImage: "hand.raised")
                         .font(.subheadline.weight(.semibold))
                         .frame(maxWidth: .infinity).frame(height: 38)
                         .background(RoundedRectangle(cornerRadius: 8).fill(Tema.accento)).foregroundStyle(.black)
@@ -959,24 +959,24 @@ struct PannelloStrumentoEdit: View {
                 .buttonStyle(.plain)
             }
             if !m.wrappedValue.percorsoStab.isEmpty {
-                Toggle("Stabilizzazione attiva", isOn: m.stabilizza).tint(Tema.accento).font(.caption)
+                Toggle("Stabilization on", isOn: m.stabilizza).tint(Tema.accento).font(.caption)
                 if m.wrappedValue.stabilizza {
-                    Picker("Modo", selection: m.treppiede) {
-                        Text("Movimento liscio").tag(false)
-                        Text("Treppiede (fermo)").tag(true)
+                    Picker("Mode", selection: m.treppiede) {
+                        Text("Smooth motion").tag(false)
+                        Text("Tripod (locked)").tag(true)
                     }
                     .pickerStyle(.segmented)
                     if !m.wrappedValue.treppiede {
-                        Regolazione(nome: "Forza", valore: m.forzaStab, intervallo: 0...1, base: 0.6, formato: "%.2f")
+                        Regolazione(nome: "Strength", valore: m.forzaStab, intervallo: 0...1, base: 0.6, formato: "%.2f")
                     }
                 }
             }
             Text(m.wrappedValue.treppiede
-                 ? "Treppiede: l'inquadratura resta ferma come su un cavalletto (adatto a riprese senza movimenti voluti)."
-                 : "Toglie il tremolio della mano e lascia i movimenti voluti; più forza = movimento più liscio. L'immagine si ingrandisce solo quanto serve a nascondere i bordi.")
+                 ? "Tripod: the framing stays still as if on a tripod (good for shots without intended movement)."
+                 : "Removes hand shake and keeps intended movement; more strength = smoother motion. The image is only enlarged as much as needed to hide the edges.")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         } else {
-            Text("La stabilizzazione vale per i video.").font(.caption).foregroundStyle(Tema.testo2)
+            Text("Stabilization applies to videos.").font(.caption).foregroundStyle(Tema.testo2)
         }
     }
 }

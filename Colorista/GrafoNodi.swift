@@ -18,11 +18,11 @@ struct GrafoNodi: View {
                     filo
                     presa(etichetta: "OUT")
                     Menu {
-                        Button { studio.aggiungi(.correzione) } label: { Label("Nodo correttore", systemImage: "plus.square") }
-                        Button { studio.aggiungi(.correzione); studio.nodi[studio.indice].modo = .parallelo } label: { Label("Nodo parallelo", systemImage: "equal.square") }
-                        Button { studio.aggiungi(.correzione); studio.nodi[studio.indice].modo = .layer } label: { Label("Nodo layer", systemImage: "square.3.layers.3d") }
+                        Button { studio.aggiungi(.correzione) } label: { Label("Corrector node", systemImage: "plus.square") }
+                        Button { studio.aggiungi(.correzione); studio.nodi[studio.indice].modo = .parallelo } label: { Label("Parallel node", systemImage: "equal.square") }
+                        Button { studio.aggiungi(.correzione); studio.nodi[studio.indice].modo = .layer } label: { Label("Layer node", systemImage: "square.3.layers.3d") }
                         Button { studio.aggiungi(.cst) } label: { Label("Color Space Transform", systemImage: "camera.filters") }
-                        Button(action: aggiungiLUT) { Label("LUT da file…", systemImage: "cube") }
+                        Button(action: aggiungiLUT) { Label("LUT from file…", systemImage: "cube") }
                     } label: {
                         Image(systemName: "plus.circle.fill").font(.title3).foregroundStyle(Tema.accento)
                     }
@@ -63,7 +63,7 @@ struct GrafoNodi: View {
                 Image(systemName: icona).font(.system(size: 10))
             }
             Text(n.etichetta).font(.system(size: 10)).lineLimit(1)
-            if !n.attivo { Text("spento").font(.system(size: 8)).foregroundStyle(.red) }
+            if !n.attivo { Text("off").font(.system(size: 8)).foregroundStyle(.red) }
             else if n.modo != .serie && numero > 1 {
                 Label(n.modo.rawValue, systemImage: n.modo.icona).font(.system(size: 8, weight: .semibold)).foregroundStyle(Tema.accento)
             }
@@ -76,12 +76,12 @@ struct GrafoNodi: View {
         .onTapGesture { studio.selezionato = n.id }
         .contextMenu {
             Button { if let i = studio.nodi.firstIndex(where: { $0.id == n.id }) { studio.nodi[i].attivo.toggle() } } label: {
-                Label(n.attivo ? "Spegni nodo" : "Accendi nodo", systemImage: n.attivo ? "eye.slash" : "eye")
+                Label(n.attivo ? "Disable node" : "Enable node", systemImage: n.attivo ? "eye.slash" : "eye")
             }
-            Button { studio.sposta(n.id, di: -1) } label: { Label("Sposta a sinistra", systemImage: "arrow.left") }
-            Button { studio.sposta(n.id, di: 1) } label: { Label("Sposta a destra", systemImage: "arrow.right") }
-            Button { studio.selezionato = n.id; studio.azzeraNodo() } label: { Label("Azzera correzione", systemImage: "arrow.counterclockwise") }
-            Button(role: .destructive) { studio.elimina(n.id) } label: { Label("Elimina nodo", systemImage: "trash") }
+            Button { studio.sposta(n.id, di: -1) } label: { Label("Move left", systemImage: "arrow.left") }
+            Button { studio.sposta(n.id, di: 1) } label: { Label("Move right", systemImage: "arrow.right") }
+            Button { studio.selezionato = n.id; studio.azzeraNodo() } label: { Label("Reset grade", systemImage: "arrow.counterclockwise") }
+            Button(role: .destructive) { studio.elimina(n.id) } label: { Label("Delete node", systemImage: "trash") }
         }
     }
 }

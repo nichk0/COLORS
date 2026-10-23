@@ -15,7 +15,7 @@ final class DelegatoMonitor: NSObject, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
         guard let s = scene as? UIWindowScene else { return }
-        GestoreMonitor.scrivi("delegato Info.plist chiamato (\(session.role.rawValue))")
+        GestoreMonitor.scrivi("Info.plist delegate called (\(session.role.rawValue))")
         MainActor.assumeIsolated {
             let w = UIWindow(windowScene: s)
             w.rootViewController = UIHostingController(rootView: VistaMonitor(studio: Studio.condiviso))
@@ -63,15 +63,15 @@ enum GestoreMonitor {
         nc.addObserver(forName: UIScene.didDisconnectNotification, object: nil, queue: .main) { n in
             let id = (n.object as? UIScene).map(ObjectIdentifier.init)
             MainActor.assumeIsolated {
-                if let id, finestre.removeValue(forKey: id) != nil { GestoreMonitor.scrivi("scena del monitor scollegata") }
+                if let id, finestre.removeValue(forKey: id) != nil { GestoreMonitor.scrivi("monitor scene disconnected") }
                 aggiornaStato()
             }
         }
         nc.addObserver(forName: UIScreen.didConnectNotification, object: nil, queue: .main) { _ in
-            MainActor.assumeIsolated { GestoreMonitor.scrivi("schermo collegato, schermi = \(UIScreen.screens.count)"); controlla() }
+            MainActor.assumeIsolated { GestoreMonitor.scrivi("screen connected, screens = \(UIScreen.screens.count)"); controlla() }
         }
         nc.addObserver(forName: UIScreen.didDisconnectNotification, object: nil, queue: .main) { _ in
-            MainActor.assumeIsolated { GestoreMonitor.scrivi("schermo scollegato"); aggiornaStato() }
+            MainActor.assumeIsolated { GestoreMonitor.scrivi("screen disconnected"); aggiornaStato() }
         }
         // duplicazione dello schermo (cavo o AirPlay): l'app passa da sola alla modalità desktop
         nc.addObserver(forName: UIScreen.capturedDidChangeNotification, object: nil, queue: .main) { _ in
@@ -97,23 +97,23 @@ enum GestoreMonitor {
         guard compagno == nil else { return }
         guard let scena = UIApplication.shared.connectedScenes.first(where: { $0.session.role == .windowApplication }) as? UIWindowScene,
               let vc = scena.keyWindow?.rootViewController ?? scena.windows.first?.rootViewController else {
-            scrivi("compagno: finestra principale non pronta"); return
+            scrivi("companion: main window not ready"); return
         }
         let crea = NSSelectorFromString("externalNonInteractiveCompanionWithConfiguration:")
         let registra = NSSelectorFromString("_registerSceneCompanion:")
         guard let classe = NSClassFromString("_UISceneCompanion") as? NSObject.Type,
               classe.responds(to: crea), vc.responds(to: registra) else {
-            scrivi("compagno: iOS non ha la funzione"); return
+            scrivi("companion: iOS doesn't have the function"); return
         }
-        let config = UISceneConfiguration(name: "Monitor esterno", sessionRole: .windowExternalDisplayNonInteractive)
+        let config = UISceneConfiguration(name: "External monitor", sessionRole: .windowExternalDisplayNonInteractive)
         config.delegateClass = DelegatoMonitor.self
         guard let c = classe.perform(crea, with: config)?.takeUnretainedValue() else {
-            scrivi("compagno: non creato"); return
+            scrivi("companion: not created"); return
         }
         _ = vc.perform(registra, with: c)
         compagno = c
         controllore = vc
-        scrivi("compagno esterno registrato su \(type(of: vc))")
+        scrivi("external companion registered on \(type(of: vc))")
     }
 
     private static weak var controllore: UIViewController?
@@ -130,10 +130,10 @@ enum GestoreMonitor {
         for sc in UIApplication.shared.connectedScenes where sc.session.role == .windowExternalDisplayNonInteractive || sc.session.role.rawValue.contains("ExternalDisplay") {
             (sc as? UIWindowScene)?.windows.forEach { $0.isHidden = true }
             UIApplication.shared.requestSceneSessionDestruction(sc.session, options: nil) { e in
-                MainActor.assumeIsolated { scrivi("chiusura scena del monitor non riuscita: \(e.localizedDescription)") }
+                MainActor.assumeIsolated { scrivi("closing the monitor scene failed: \(e.localizedDescription)") }
             }
         }
-        scrivi("compagno sospeso (duplicazione per la scelta dei file)")
+        scrivi("companion suspended (mirroring for the file picker)")
     }
 
     /// Torna all'interfaccia desktop sul monitor.
@@ -146,7 +146,7 @@ enum GestoreMonitor {
         let scena = UIApplication.shared.connectedScenes.first { $0.session.role == .windowApplication } as? UIWindowScene
         let attiva = scena?.traitCollection.sceneCaptureState == .active
         if attiva != Studio.condiviso.duplicazione {
-            GestoreMonitor.scrivi("duplicazione dello schermo: \(attiva ? "sì" : "no")")
+            GestoreMonitor.scrivi("screen mirroring: \(attiva ? "yes" : "no")")
             Studio.condiviso.duplicazione = attiva
         }
     }
@@ -155,11 +155,11 @@ enum GestoreMonitor {
     /// (come fa Keynote quando parte la presentazione). Senza monitor collegato iOS risponde con un errore: va bene.
     static func richiedi() {
         let r = UISceneSessionActivationRequest(role: .windowExternalDisplayNonInteractive)
-        GestoreMonitor.scrivi("chiedo a iOS lo schermo esterno")
+        GestoreMonitor.scrivi("asking iOS for the external screen")
         UIApplication.shared.activateSceneSession(for: r) { errore in
             let testo = errore.localizedDescription
             let codice = (errore as NSError).code
-            MainActor.assumeIsolated { GestoreMonitor.scrivi("iOS ha risposto: \(testo) (codice \(codice))") }
+            MainActor.assumeIsolated { GestoreMonitor.scrivi("iOS replied: \(testo) (code \(codice))") }
         }
         // la risposta positiva non arriva qui: arriva come nuova scena (willConnect)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { MainActor.assumeIsolated { controlla() } }
@@ -167,15 +167,15 @@ enum GestoreMonitor {
 
     static func controlla() {
         let scene = UIApplication.shared.connectedScenes
-        GestoreMonitor.scrivi("sessioni aperte = \(UIApplication.shared.openSessions.map { $0.role.rawValue }), multiple = \(UIApplication.shared.supportsMultipleScenes)")
-        GestoreMonitor.scrivi("schermi = \(UIScreen.screens.count), scene = \(scene.map { $0.session.role.rawValue })")
+        GestoreMonitor.scrivi("open sessions = \(UIApplication.shared.openSessions.map { $0.role.rawValue }), multiple = \(UIApplication.shared.supportsMultipleScenes)")
+        GestoreMonitor.scrivi("screens = \(UIScreen.screens.count), scenes = \(scene.map { $0.session.role.rawValue })")
         for s in scene { if let ws = s as? UIWindowScene { collega(ws) } }
         aggiornaStato()
     }
 
     private static func collega(_ s: UIWindowScene) {
         let ruolo = s.session.role
-        GestoreMonitor.scrivi("scena \(ruolo.rawValue), delegato \(s.delegate.map { String(describing: type(of: $0)) } ?? "nessuno"), finestre \(s.windows.count)")
+        GestoreMonitor.scrivi("scene \(ruolo.rawValue), delegate \(s.delegate.map { String(describing: type(of: $0)) } ?? "none"), windows \(s.windows.count)")
         guard ruolo == .windowExternalDisplayNonInteractive || ruolo.rawValue.contains("ExternalDisplay") else { return }
         if s.windows.contains(where: { !$0.isHidden }) { aggiornaStato(); return }
         let w = UIWindow(windowScene: s)
@@ -183,7 +183,7 @@ enum GestoreMonitor {
         w.overrideUserInterfaceStyle = .dark
         w.isHidden = false
         finestre[ObjectIdentifier(s)] = w
-        GestoreMonitor.scrivi("finestra del monitor creata (riserva)")
+        GestoreMonitor.scrivi("monitor window created (fallback)")
         aggiornaStato()
     }
 
@@ -349,7 +349,7 @@ struct VistaMonitor: View {
         } else if let img = studio.risultato {
             Image(uiImage: img).resizable().scaledToFit()
         } else {
-            Text("Nessuna immagine").foregroundStyle(Tema.testo2)
+            Text("No image").foregroundStyle(Tema.testo2)
         }
     }
 
@@ -381,12 +381,12 @@ struct VistaMonitor: View {
                 Text(studio.dimensioni).font(.system(size: 11)).foregroundStyle(Tema.testo2).lineLimit(1)
                 Spacer()
                 if studio.inRiproduzione {
-                    Label("Riproduzione", systemImage: "play.fill").font(.system(size: 11, weight: .semibold)).foregroundStyle(Tema.accento)
+                    Label("Playback", systemImage: "play.fill").font(.system(size: 11, weight: .semibold)).foregroundStyle(Tema.accento)
                 }
                 Text(VistaMonitor.timecode(studio.inEdit ? studio.tempoSequenza : studio.tempo))
                     .font(.system(size: 14, design: .monospaced))
                 // maschera del nodo in bianco e nero o trasparente (come "Highlight" di DaVinci)
-                Label("Maschera", systemImage: studio.mostraMaschera ? "circle.lefthalf.filled" : "circle.dashed")
+                Label("Mask", systemImage: studio.mostraMaschera ? "circle.lefthalf.filled" : "circle.dashed")
                     .font(.system(size: 11, weight: .semibold))
                     .padding(.horizontal, 8).frame(height: 22)
                     .background(Capsule().fill(studio.mostraMaschera ? Tema.accento.opacity(0.2) : Tema.campo))
@@ -489,12 +489,12 @@ private struct BarraAltaMonitor: View {
             Text(studio.progetto.nome).font(.system(size: 13, weight: .semibold)).foregroundStyle(Color(white: 0.82))
             Spacer()
             // annulla / ripeti, come le frecce in alto
-            freccia("arrow.uturn.backward", "Annulla") { Studio.condiviso.annulla() }
-            freccia("arrow.uturn.forward", "Ripeti") { Studio.condiviso.ripeti() }
+            freccia("arrow.uturn.backward", "Cancel") { Studio.condiviso.annulla() }
+            freccia("arrow.uturn.forward", "Redo") { Studio.condiviso.ripeti() }
                 .padding(.trailing, 8)
-            voce("Galleria", "photo.stack", \.galleria)
+            voce("Gallery", "photo.stack", \.galleria)
             voce("Clip", "film.stack", \.clip)
-            voce("Keyframe", "diamond", \.keyframe)
+            voce("Keyframes", "diamond", \.keyframe)
             voce("Scope", "waveform.path.ecg", \.scope)
         }
         .padding(.horizontal, 12).frame(height: 38)
@@ -506,81 +506,81 @@ private struct BarraAltaMonitor: View {
         ("File", {
             let s = Studio.condiviso
             return [
-                VoceMenuMonitor(titolo: "Nuovo progetto", icona: "doc.badge.plus") {
+                VoceMenuMonitor(titolo: "New project", icona: "doc.badge.plus") {
                     // il progetto aperto resta salvato nei Progetti; quello nuovo prende un nome che si può cambiare dal telefono
                     let n = (Archivio.elencoArchiviati().count) + 2
-                    Task { await s.nuovoProgetto(nome: "Progetto \(n)") }
+                    Task { await s.nuovoProgetto(nome: "Project \(n)") }
                 },
-                VoceMenuMonitor(titolo: "Apri progetto…", icona: "folder") {
+                VoceMenuMonitor(titolo: "Open project…", icona: "folder") {
                     let altri = Archivio.elencoArchiviati()
-                    if altri.isEmpty { s.messaggio = "Non ci sono altri progetti salvati."; return }
+                    if altri.isEmpty { s.messaggio = "There are no other saved projects."; return }
                     let data = DateFormatter(); data.dateStyle = .short; data.timeStyle = .short
                     MenuMonitor.condiviso.apri(altri.prefix(14).map { p in
-                        VoceMenuMonitor(titolo: "\(p.nome) · \(p.clips.count) clip · \(data.string(from: p.modificato))", icona: "film.stack") {
+                        VoceMenuMonitor(titolo: "\(p.nome) · \(p.clips.count) clips · \(data.string(from: p.modificato))", icona: "film.stack") {
                             Task { await s.apriProgetto(p.id) }
                         }
                     })
                 },
-                VoceMenuMonitor(titolo: "Importa media…", icona: "photo.on.rectangle") { s.richiestaPagina = .media },
-                VoceMenuMonitor(titolo: "Salva versione del progetto", icona: "square.and.arrow.down") { s.salvaVersione() },
-                VoceMenuMonitor(titolo: "Consegna (esporta)", icona: "paperplane") { s.richiestaPalette = .consegna },
+                VoceMenuMonitor(titolo: "Import media…", icona: "photo.on.rectangle") { s.richiestaPagina = .media },
+                VoceMenuMonitor(titolo: "Save project version", icona: "square.and.arrow.down") { s.salvaVersione() },
+                VoceMenuMonitor(titolo: "Deliver (export)", icona: "paperplane") { s.richiestaPalette = .consegna },
             ]
         }),
-        ("Modifica", {
+        ("Edit", {
             let s = Studio.condiviso
             return [
-                VoceMenuMonitor(titolo: "Annulla", icona: "arrow.uturn.backward") { s.annulla() },
-                VoceMenuMonitor(titolo: "Ripeti", icona: "arrow.uturn.forward") { s.ripeti() },
-                VoceMenuMonitor(titolo: "Azzera il nodo", icona: "arrow.counterclockwise") { s.azzeraNodo() },
+                VoceMenuMonitor(titolo: "Cancel", icona: "arrow.uturn.backward") { s.annulla() },
+                VoceMenuMonitor(titolo: "Redo", icona: "arrow.uturn.forward") { s.ripeti() },
+                VoceMenuMonitor(titolo: "Reset node", icona: "arrow.counterclockwise") { s.azzeraNodo() },
             ]
         }),
         ("Clip", {
             let s = Studio.condiviso
             return [
-                VoceMenuMonitor(titolo: "Clip precedente", icona: "chevron.up") { s.clipVicina(-1) },
-                VoceMenuMonitor(titolo: "Clip successiva", icona: "chevron.down") { s.clipVicina(1) },
-                VoceMenuMonitor(titolo: "Rimuovi la clip dal progetto", icona: "trash", distruttiva: true) {
+                VoceMenuMonitor(titolo: "Previous clip", icona: "chevron.up") { s.clipVicina(-1) },
+                VoceMenuMonitor(titolo: "Next clip", icona: "chevron.down") { s.clipVicina(1) },
+                VoceMenuMonitor(titolo: "Remove clip from project", icona: "trash", distruttiva: true) {
                     if let id = s.clipAttiva { Task { await s.eliminaClip(id); s.aggiornaSequenza(ritardo: 0) } }
                 },
             ]
         }),
-        ("Nodi", {
+        ("Nodes", {
             let s = Studio.condiviso
             return [
-                VoceMenuMonitor(titolo: "Aggiungi nodo seriale", icona: "plus.square.on.square") { NodiMonitor.aggiungi(.serie) },
-                VoceMenuMonitor(titolo: "Aggiungi nodo parallelo", icona: "square.split.1x2") { NodiMonitor.aggiungi(.parallelo) },
-                VoceMenuMonitor(titolo: "Aggiungi nodo layer", icona: "square.stack") { NodiMonitor.aggiungi(.layer) },
-                VoceMenuMonitor(titolo: "Aggiungi nodo CST", icona: "camera.filters") { s.aggiungi(.cst) },
-                VoceMenuMonitor(titolo: s.nodo.attivo ? "Spegni il nodo" : "Accendi il nodo", icona: "eye") { s.nodo.attivo.toggle() },
+                VoceMenuMonitor(titolo: "Add serial node", icona: "plus.square.on.square") { NodiMonitor.aggiungi(.serie) },
+                VoceMenuMonitor(titolo: "Add parallel node", icona: "square.split.1x2") { NodiMonitor.aggiungi(.parallelo) },
+                VoceMenuMonitor(titolo: "Add layer node", icona: "square.stack") { NodiMonitor.aggiungi(.layer) },
+                VoceMenuMonitor(titolo: "Add CST node", icona: "camera.filters") { s.aggiungi(.cst) },
+                VoceMenuMonitor(titolo: s.nodo.attivo ? "Disable node" : "Enable node", icona: "eye") { s.nodo.attivo.toggle() },
             ]
         }),
-        ("Vista", {
+        ("View", {
             let s = Studio.condiviso
             return [
-                VoceMenuMonitor(titolo: "Filmato a schermo intero", icona: "arrow.up.left.and.arrow.down.right") { s.schermoInteroMonitor = true },
-                VoceMenuMonitor(titolo: s.mostraMaschera ? "Nascondi la maschera" : "Mostra la maschera", icona: "circle.lefthalf.filled") { s.mostraMaschera.toggle() },
-                VoceMenuMonitor(titolo: "Maschera in bianco e nero", icona: "circle.righthalf.filled") { s.mascheraBN = true; s.mostraMaschera = true },
-                VoceMenuMonitor(titolo: "Maschera trasparente", icona: "circle.dashed") { s.mascheraBN = false; s.mostraMaschera = true },
+                VoceMenuMonitor(titolo: "Full-screen video", icona: "arrow.up.left.and.arrow.down.right") { s.schermoInteroMonitor = true },
+                VoceMenuMonitor(titolo: s.mostraMaschera ? "Hide mask" : "Show mask", icona: "circle.lefthalf.filled") { s.mostraMaschera.toggle() },
+                VoceMenuMonitor(titolo: "Black and white mask", icona: "circle.righthalf.filled") { s.mascheraBN = true; s.mostraMaschera = true },
+                VoceMenuMonitor(titolo: "Transparent mask", icona: "circle.dashed") { s.mascheraBN = false; s.mostraMaschera = true },
             ]
         }),
-        ("Riproduzione", {
+        ("Playback", {
             let s = Studio.condiviso
             return [
-                VoceMenuMonitor(titolo: s.inRiproduzione ? "Pausa" : "Play", icona: s.inRiproduzione ? "pause.fill" : "play.fill") { s.playPausa() },
-                VoceMenuMonitor(titolo: "Fotogramma avanti", icona: "chevron.right") { s.passo(1) },
-                VoceMenuMonitor(titolo: "Fotogramma indietro", icona: "chevron.left") { s.passo(-1) },
-                VoceMenuMonitor(titolo: "Vai all'inizio", icona: "backward.end.fill") { s.vaiA(0) },
-                VoceMenuMonitor(titolo: "Vai alla fine", icona: "forward.end.fill") { s.vaiA(1) },
+                VoceMenuMonitor(titolo: s.inRiproduzione ? "Pause" : "Play", icona: s.inRiproduzione ? "pause.fill" : "play.fill") { s.playPausa() },
+                VoceMenuMonitor(titolo: "Next frame", icona: "chevron.right") { s.passo(1) },
+                VoceMenuMonitor(titolo: "Previous frame", icona: "chevron.left") { s.passo(-1) },
+                VoceMenuMonitor(titolo: "Go to start", icona: "backward.end.fill") { s.vaiA(0) },
+                VoceMenuMonitor(titolo: "Go to end", icona: "forward.end.fill") { s.vaiA(1) },
             ]
         }),
-        ("Area di lavoro", {
+        ("Workspace", {
             let s = Studio.condiviso
             return [
-                VoceMenuMonitor(titolo: "Ripristina le misure dei pannelli", icona: "rectangle.3.group") {
+                VoceMenuMonitor(titolo: "Reset panel sizes", icona: "rectangle.3.group") {
                     let b = ImpostazioniMonitor()
                     s.monitor.quotaGalleria = b.quotaGalleria; s.monitor.quotaNodi = b.quotaNodi; s.monitor.quotaPalette = b.quotaPalette
                 },
-                VoceMenuMonitor(titolo: "Mostra tutti i pannelli", icona: "square.grid.2x2") {
+                VoceMenuMonitor(titolo: "Show all panels", icona: "square.grid.2x2") {
                     s.monitor.galleria = true; s.monitor.clip = true; s.monitor.nodi = true; s.monitor.keyframe = true; s.monitor.scope = true
                 },
             ]
@@ -629,9 +629,9 @@ private struct GalleriaMonitor: View {
     @ObservedObject var studio: Studio
     var body: some View {
         VStack(spacing: 0) {
-            TestataMonitor(titolo: "Galleria · Stills", destra: "\(studio.progetto.stills.count)")
+            TestataMonitor(titolo: "Gallery · Stills", destra: "\(studio.progetto.stills.count)")
             if studio.progetto.stills.isEmpty {
-                Text("Nessuno still. Si catturano dal telefono (palette Galleria) e servono per confronto e Color Match.")
+                Text("No stills. They are grabbed from the phone (Gallery palette) and are used for comparison and Color Match.")
                     .font(.system(size: 11)).foregroundStyle(Tema.testo2).padding(12)
                 Spacer()
             } else {
@@ -677,10 +677,10 @@ private struct NodiMonitor: View {
     private func menuSfondo() {
         let s = Studio.condiviso
         MenuMonitor.condiviso.apri([
-            VoceMenuMonitor(titolo: "Aggiungi nodo seriale", icona: "plus.square.on.square") { NodiMonitor.aggiungi(.serie) },
-            VoceMenuMonitor(titolo: "Aggiungi nodo parallelo", icona: "square.split.1x2") { NodiMonitor.aggiungi(.parallelo) },
-            VoceMenuMonitor(titolo: "Aggiungi nodo layer", icona: "square.stack") { NodiMonitor.aggiungi(.layer) },
-            VoceMenuMonitor(titolo: "Aggiungi nodo CST", icona: "camera.filters") { s.aggiungi(.cst) },
+            VoceMenuMonitor(titolo: "Add serial node", icona: "plus.square.on.square") { NodiMonitor.aggiungi(.serie) },
+            VoceMenuMonitor(titolo: "Add parallel node", icona: "square.split.1x2") { NodiMonitor.aggiungi(.parallelo) },
+            VoceMenuMonitor(titolo: "Add layer node", icona: "square.stack") { NodiMonitor.aggiungi(.layer) },
+            VoceMenuMonitor(titolo: "Add CST node", icona: "camera.filters") { s.aggiungi(.cst) },
         ])
     }
 
@@ -689,16 +689,16 @@ private struct NodiMonitor: View {
         let s = Studio.condiviso
         s.selezionato = n.id
         MenuMonitor.condiviso.apri([
-            VoceMenuMonitor(titolo: n.attivo ? "Spegni nodo" : "Accendi nodo", icona: n.attivo ? "eye.slash" : "eye") {
+            VoceMenuMonitor(titolo: n.attivo ? "Disable node" : "Enable node", icona: n.attivo ? "eye.slash" : "eye") {
                 if let i = s.nodi.firstIndex(where: { $0.id == n.id }) { s.nodi[i].attivo.toggle() }
             },
-            VoceMenuMonitor(titolo: "Aggiungi nodo seriale", icona: "plus.square.on.square") { s.selezionato = n.id; NodiMonitor.aggiungi(.serie) },
-            VoceMenuMonitor(titolo: "Aggiungi nodo parallelo", icona: "square.split.1x2") { s.selezionato = n.id; NodiMonitor.aggiungi(.parallelo) },
-            VoceMenuMonitor(titolo: "Aggiungi nodo layer", icona: "square.stack") { s.selezionato = n.id; NodiMonitor.aggiungi(.layer) },
-            VoceMenuMonitor(titolo: "Sposta a sinistra", icona: "arrow.left") { s.sposta(n.id, di: -1) },
-            VoceMenuMonitor(titolo: "Sposta a destra", icona: "arrow.right") { s.sposta(n.id, di: 1) },
-            VoceMenuMonitor(titolo: "Azzera correzione", icona: "arrow.counterclockwise") { s.selezionato = n.id; s.azzeraNodo() },
-            VoceMenuMonitor(titolo: "Elimina nodo", icona: "trash", distruttiva: true) { s.elimina(n.id) },
+            VoceMenuMonitor(titolo: "Add serial node", icona: "plus.square.on.square") { s.selezionato = n.id; NodiMonitor.aggiungi(.serie) },
+            VoceMenuMonitor(titolo: "Add parallel node", icona: "square.split.1x2") { s.selezionato = n.id; NodiMonitor.aggiungi(.parallelo) },
+            VoceMenuMonitor(titolo: "Add layer node", icona: "square.stack") { s.selezionato = n.id; NodiMonitor.aggiungi(.layer) },
+            VoceMenuMonitor(titolo: "Move left", icona: "arrow.left") { s.sposta(n.id, di: -1) },
+            VoceMenuMonitor(titolo: "Move right", icona: "arrow.right") { s.sposta(n.id, di: 1) },
+            VoceMenuMonitor(titolo: "Reset grade", icona: "arrow.counterclockwise") { s.selezionato = n.id; s.azzeraNodo() },
+            VoceMenuMonitor(titolo: "Delete node", icona: "trash", distruttiva: true) { s.elimina(n.id) },
         ])
     }
 
@@ -713,7 +713,7 @@ private struct NodiMonitor: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TestataMonitor(titolo: "Nodi", destra: "\(studio.nodi.count)")
+            TestataMonitor(titolo: "Nodes", destra: "\(studio.nodi.count)")
             GeometryReader { g in
                 let col = colonne
                 let lw = g.size.width, lh = g.size.height
@@ -827,10 +827,10 @@ private struct ClipMonitor: View {
     private func menuClip(_ id: UUID) {
         let s = Studio.condiviso
         MenuMonitor.condiviso.apri([
-            VoceMenuMonitor(titolo: "Apri nel viewer", icona: "play.rectangle") { Task { await s.apriClip(id) } },
-            VoceMenuMonitor(titolo: "Sposta a sinistra", icona: "arrow.left") { s.spostaClip(id, di: -1) },
-            VoceMenuMonitor(titolo: "Sposta a destra", icona: "arrow.right") { s.spostaClip(id, di: 1) },
-            VoceMenuMonitor(titolo: "Rimuovi dal progetto", icona: "trash", distruttiva: true) {
+            VoceMenuMonitor(titolo: "Open in viewer", icona: "play.rectangle") { Task { await s.apriClip(id) } },
+            VoceMenuMonitor(titolo: "Move left", icona: "arrow.left") { s.spostaClip(id, di: -1) },
+            VoceMenuMonitor(titolo: "Move right", icona: "arrow.right") { s.spostaClip(id, di: 1) },
+            VoceMenuMonitor(titolo: "Remove from project", icona: "trash", distruttiva: true) {
                 Task { await s.eliminaClip(id); s.aggiornaSequenza(ritardo: 0) }
             },
         ])
@@ -966,12 +966,12 @@ private struct PaletteMonitor: View {
                             s.contagocce = s.contagocce == .bianco ? .nessuno : .bianco
                         })
                     valore("Temp", \.temperatura, -1...1, "%.2f"); valore("Tint", \.tinta, -1...1, "%.2f")
-                    valore("Contrasto", \.contrasto, 0...2, "%.3f"); valore("Pivot", \.pivot, 0...1, "%.3f")
+                    valore("Contrast", \.contrasto, 0...2, "%.3f"); valore("Pivot", \.pivot, 0...1, "%.3f")
                     valoreNodo("Mid/Detail", \.effetti.dettaglio, -1...1, "%.2f")
-                    valore("Esposizione", \.esposizione, -3...3, "%.2f")
+                    valore("Exposure", \.esposizione, -3...3, "%.2f")
                     HStack(spacing: 2) {
-                        vista("circle.circle", "Ruote", !barre) { barre = false }
-                        vista("chart.bar.fill", "Barre", barre) { barre = true }
+                        vista("circle.circle", "Wheels", !barre) { barre = false }
+                        vista("chart.bar.fill", "Bars", barre) { barre = true }
                     }
                 }
                 HStack(spacing: 26) {
@@ -991,8 +991,8 @@ private struct PaletteMonitor: View {
                 // in basso come DaVinci: Color Boost, Shadows, Highlights, Saturation, Hue, Lum Mix
                 HStack(spacing: 14) {
                     valore("Color Boost", \.colorBoost, -1...1, "%.2f")
-                    valore("Ombre", \.ombre, -1...1, "%.2f"); valore("Luci", \.luci, -1...1, "%.2f")
-                    valore("Saturazione", \.saturazione, 0...2, "%.2f")
+                    valore("Shadows", \.ombre, -1...1, "%.2f"); valore("Highlights", \.luci, -1...1, "%.2f")
+                    valore("Saturation", \.saturazione, 0...2, "%.2f")
                     valore("Hue", \.rotazioneTinta, -180...180, "%.0f°"); valore("Lum Mix", \.lumMix, 0...1, "%.2f")
                 }
             }
@@ -1015,7 +1015,7 @@ private struct PaletteMonitor: View {
                     }
                     freccia("chevron.right", "hdr.dopo") { primaZona = min(3, primaZona + 1) }
                     Spacer()
-                    Label("Azzera", systemImage: "arrow.counterclockwise").font(.system(size: 11))
+                    Label("Reset", systemImage: "arrow.counterclockwise").font(.system(size: 11))
                         .foregroundStyle(g.hdrModificato ? Tema.accento : Tema.testo2)
                         .zonaMonitor("hdr.azzera", clic: { _ in Studio.condiviso.nodo.grade.azzeraHDR() })
                 }
@@ -1023,7 +1023,7 @@ private struct PaletteMonitor: View {
                     ForEach(primaZona..<(primaZona + 3), id: \.self) { i in
                         ruotaHDR(Grade.nomiZone[i], \.zone[i], sat: \.zoneSat[i], ampiezza: \.zoneAmpiezza[i])
                     }
-                    ruotaHDR("Globale", \.hdrGlobale, sat: nil, ampiezza: nil)
+                    ruotaHDR("Global", \.hdrGlobale, sat: nil, ampiezza: nil)
                 }
                 HStack(spacing: 12) {
                     valore("Temp", \.hdrTemp, -1...1, "%.2f"); valore("Tint", \.hdrTint, -1...1, "%.2f")
@@ -1069,7 +1069,7 @@ private struct PaletteMonitor: View {
                 VStack(spacing: 6) {
                     Image(systemName: studio.paletteMonitor.icona).font(.system(size: 28)).foregroundStyle(Tema.accento)
                     Text("Palette \(studio.paletteMonitor.rawValue)").font(.system(size: 14, weight: .semibold))
-                    Text(tattile ? "Questa palette si apre dall'interfaccia normale (✕ in alto a destra)." : "Si regola sul telefono; qui vedi il risultato nel viewer e negli scope.")
+                    Text(tattile ? "This palette opens from the normal interface (✕ at the top right)." : "Adjust it on the phone; here you see the result in the viewer and on the scopes.")
                         .font(.system(size: 12)).foregroundStyle(Tema.testo2)
                 }
             }
@@ -1260,7 +1260,7 @@ private struct KeyframeMonitor: View {
     var body: some View {
         let durata = max(0.001, studio.durata)
         VStack(spacing: 0) {
-            TestataMonitor(titolo: "Keyframe", destra: VistaMonitor.timecode(studio.tempo))
+            TestataMonitor(titolo: "Keyframes", destra: VistaMonitor.timecode(studio.tempo))
             GeometryReader { g in
                 let colonna: CGFloat = 120
                 let larga = g.size.width - colonna
@@ -1322,7 +1322,7 @@ private struct ScopeMonitor: View {
                 if let s = studio.immagineScope {
                     Image(uiImage: s).resizable().interpolation(.medium).scaledToFit().padding(8)
                 } else {
-                    Text("Scope spenti: sceglili sul telefono.").font(.system(size: 12)).foregroundStyle(Tema.testo2)
+                    Text("Scopes off: choose them on the phone.").font(.system(size: 12)).foregroundStyle(Tema.testo2)
                 }
             }
         }
@@ -1344,46 +1344,46 @@ struct FoglioMonitor: View {
             Form {
                 if !studio.monitorCollegato {
                     Section {
-                        Text("Collega un monitor o una TV (cavo USB-C/HDMI o AirPlay): l'interfaccia desktop compare sul monitor e il telefono diventa trackpad e tastiera.")
+                        Text("Connect a monitor or a TV (USB-C/HDMI cable or AirPlay): the desktop interface appears on the monitor and the phone becomes a trackpad and keyboard.")
                             .font(.footnote).foregroundStyle(Tema.testo2)
                     }
                 }
                 if studio.monitorCollegato {
-                    Section("Sul monitor") {
-                        Picker("Sul monitor", selection: $studio.monitor.desktop) {
-                            Text("Interfaccia desktop").tag(true)
-                            Text("Solo immagine").tag(false)
+                    Section("On the monitor") {
+                        Picker("On the monitor", selection: $studio.monitor.desktop) {
+                            Text("Desktop interface").tag(true)
+                            Text("Image only").tag(false)
                         }
                         .pickerStyle(.segmented)
                         .listRowBackground(Color.clear)
                         Button { apriTrackpad() } label: {
-                            Label("Usa come trackpad e tastiera", systemImage: "hand.point.up.left").foregroundStyle(Tema.accento)
+                            Label("Use as trackpad and keyboard", systemImage: "hand.point.up.left").foregroundStyle(Tema.accento)
                         }
                     }
                 }
                 if studio.monitor.desktop {
-                    Section("Pannelli") {
-                        Button("Ripristina le misure dei pannelli") {
+                    Section("Panels") {
+                        Button("Reset panel sizes") {
                             let base = ImpostazioniMonitor()
                             studio.monitor.quotaGalleria = base.quotaGalleria; studio.monitor.quotaNodi = base.quotaNodi; studio.monitor.quotaPalette = base.quotaPalette
                         }
                         .foregroundStyle(Tema.accento)
-                        Toggle("Galleria degli still", isOn: $studio.monitor.galleria)
-                        Toggle("Striscia delle clip", isOn: $studio.monitor.clip)
-                        Toggle("Keyframe", isOn: $studio.monitor.keyframe)
+                        Toggle("Stills gallery", isOn: $studio.monitor.galleria)
+                        Toggle("Clip strip", isOn: $studio.monitor.clip)
+                        Toggle("Keyframes", isOn: $studio.monitor.keyframe)
                         Toggle("Scope", isOn: $studio.monitor.scope)
                     }
                     .tint(Tema.accento)
                 } else {
                     Section {
-                        Text("Il monitor mostra solo l'immagine corretta a tutto schermo, senza comandi: utile per far vedere il lavoro a un cliente.")
+                        Text("The monitor shows only the graded image full screen, without controls: useful for showing the work to a client.")
                             .font(.footnote).foregroundStyle(Tema.testo2)
                     }
                 }
             }
-            .navigationTitle("Monitor esterno")
+            .navigationTitle("External monitor")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Fine") { chiudi() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { chiudi() } } }
         }
         .presentationDetents([.medium, .large])
         .preferredColorScheme(.dark)
@@ -1417,11 +1417,11 @@ enum PannelloDesktop: String, Codable, CaseIterable, Identifiable {
     var titolo: String {
         switch self {
         case .viewer: return "Viewer"
-        case .nodi: return "Nodi"
-        case .galleria: return "Galleria"
+        case .nodi: return "Nodes"
+        case .galleria: return "Gallery"
         case .clip: return "Clip"
         case .palette: return "Palette"
-        case .keyframe: return "Keyframe"
+        case .keyframe: return "Keyframes"
         case .scope: return "Scope"
         }
     }
@@ -1651,8 +1651,8 @@ struct DesktopFinestre: View {
                 .accessibilityLabel(p.titolo)
             }
             Rectangle().fill(Color.white.opacity(0.25)).frame(width: 1, height: 40).padding(.horizontal, 6)
-            iconaDock("square.grid.2x2", "Riordina") { withAnimation(.easeOut(duration: 0.25)) { disp = .base } }
-            iconaDock("rectangle.portrait.and.arrow.right", "Esci") { esci() }
+            iconaDock("square.grid.2x2", "Arrange") { withAnimation(.easeOut(duration: 0.25)) { disp = .base } }
+            iconaDock("rectangle.portrait.and.arrow.right", "Exit") { esci() }
         }
         .padding(.horizontal, 12).padding(.vertical, 6)
         .background(RoundedRectangle(cornerRadius: 18).fill(.ultraThinMaterial))
@@ -1683,7 +1683,7 @@ private struct MediaMonitor: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
-                Text("Media Pool · Libreria Foto").font(.system(size: 12, weight: .semibold))
+                Text("Media Pool · Photo Library").font(.system(size: 12, weight: .semibold))
                 Spacer()
                 ForEach(LibreriaMonitor.Filtro.allCases, id: \.self) { f in
                     Text(f.rawValue).font(.system(size: 11, weight: .semibold))
@@ -1692,15 +1692,15 @@ private struct MediaMonitor: View {
                         .foregroundStyle(libreria.filtro == f ? Tema.accento : Color(white: 0.8))
                         .zonaMonitor("media.filtro." + f.rawValue, clic: { _ in libreria.filtro = f })
                 }
-                if libreria.importando { Text("Importo…").font(.system(size: 11)).foregroundStyle(Tema.accento) }
+                if libreria.importando { Text("Importing…").font(.system(size: 11)).foregroundStyle(Tema.accento) }
             }
             .padding(.horizontal, 12).frame(height: 34)
             .background(Tema.pannello)
             switch libreria.stato {
             case .negato:
-                messaggio("Colors non può vedere la libreria Foto. Consenti l'accesso in Impostazioni › Colors › Foto.")
+                messaggio("Colors can't see the Photo library. Allow access in Settings › Colors › Photos.")
             case .attesa:
-                messaggio("Rispondi sul telefono: Colors chiede di vedere la libreria Foto.")
+                messaggio("Answer on the phone: Colors is asking to see the Photo library.")
             case .pronta:
                 GeometryReader { g in
                     let colonne = max(3, Int(g.size.width / 150))
@@ -1727,7 +1727,7 @@ private struct MediaMonitor: View {
                     // rotella del mouse (o trascinamento) per scorrere la libreria
                     .zonaMonitor("media.griglia", trascina: { d, _ in libreria.scorri(d.height + d.width, pagina: colonne) })
                     .overlay(alignment: .bottomTrailing) {
-                        Text("\(min(inizio + 1, libreria.elementi.count))–\(min(inizio + pagina, libreria.elementi.count)) di \(libreria.elementi.count)")
+                        Text("\(min(inizio + 1, libreria.elementi.count))–\(min(inizio + pagina, libreria.elementi.count)) of \(libreria.elementi.count)")
                             .font(.system(size: 10, design: .monospaced)).foregroundStyle(Tema.testo2).padding(6)
                     }
                 }
@@ -1775,7 +1775,7 @@ extension VistaMonitor {
 @MainActor
 final class LibreriaMonitor: ObservableObject {
     enum Stato { case attesa, negato, pronta }
-    enum Filtro: String, CaseIterable { case tutto = "Tutto", video = "Video", foto = "Foto" }
+    enum Filtro: String, CaseIterable { case tutto = "All", video = "Video", foto = "Photo" }
     struct Elemento: Identifiable { let id: String; let asset: PHAsset; var video: Bool { asset.mediaType == .video }; var durata: Double { asset.duration } }
 
     @Published var stato = Stato.attesa
@@ -1854,10 +1854,10 @@ final class LibreriaMonitor: ObservableObject {
             DispatchQueue.main.async { MainActor.assumeIsolated {
                 Task { @MainActor in
                     defer { try? FileManager.default.removeItem(at: url); self.importando = false }
-                    if let errore { studio.messaggio = "Non riesco a prendere l'audio: \(errore.localizedDescription)"; return }
+                    if let errore { studio.messaggio = "Can't get the audio: \(errore.localizedDescription)"; return }
                     let nome = (r.originalFilename as NSString).deletingPathExtension
                     if await studio.aggiungiAudio(daVideo: url, nome: nome) { self.importati.insert(e.id) }
-                    else { studio.messaggio = "In questo video non c'è audio." }
+                    else { studio.messaggio = "This video has no audio." }
                 }
             } }
         }
@@ -1877,7 +1877,7 @@ final class LibreriaMonitor: ObservableObject {
             DispatchQueue.main.async { MainActor.assumeIsolated {
                 Task { @MainActor in
                     defer { try? FileManager.default.removeItem(at: url); self.importando = false }
-                    if let errore { studio.messaggio = "Non riesco a importare: \(errore.localizedDescription)"; return }
+                    if let errore { studio.messaggio = "Can't import: \(errore.localizedDescription)"; return }
                     let nome = (r.originalFilename as NSString).deletingPathExtension
                     if e.video { await studio.importaNelPool(url, video: true, nome: nome) }
                     else if let d = try? Data(contentsOf: url), let img = UIImage(data: d), let jpg = img.jpegData(compressionQuality: 0.95) {
@@ -1898,7 +1898,7 @@ final class LibreriaMonitor: ObservableObject {
         let risorse = PHAssetResource.assetResources(for: e.asset)
         let tipo: PHAssetResourceType = e.video ? .video : .photo
         guard let r = risorse.first(where: { $0.type == tipo }) ?? risorse.first else {
-            importando = false; studio.messaggio = "Non riesco a leggere questo elemento."; return
+            importando = false; studio.messaggio = "Can't read this item."; return
         }
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + "-" + r.originalFilename)
         let o = PHAssetResourceRequestOptions()
@@ -1907,11 +1907,11 @@ final class LibreriaMonitor: ObservableObject {
             DispatchQueue.main.async { MainActor.assumeIsolated {
                 Task { @MainActor in
                     defer { try? FileManager.default.removeItem(at: url); self.importando = false }
-                    if let errore { studio.messaggio = "Non riesco a importare: \(errore.localizedDescription)"; return }
+                    if let errore { studio.messaggio = "Can't import: \(errore.localizedDescription)"; return }
                     let prima = Set(studio.progetto.clips.map(\.id))
                     if e.video { await studio.importaVideo(url) }
                     else if let d = try? Data(contentsOf: url), let img = UIImage(data: d), let jpg = img.jpegData(compressionQuality: 0.95) {
-                        await studio.importaFoto(jpg, nome: "Foto \(studio.progetto.clips.count + 1)")
+                        await studio.importaFoto(jpg, nome: "Photo \(studio.progetto.clips.count + 1)")
                     }
                     self.importati.insert(e.id)
                     fatto?(studio.progetto.clips.first { !prima.contains($0.id) }?.id)
@@ -1936,31 +1936,31 @@ private struct ConsegnaMonitor: View {
             if let l = studio.lavoro {
                 HStack { ProgressView().tint(Tema.accento); Text(l).font(.system(size: 13, weight: .semibold)).foregroundStyle(Tema.accento) }
             }
-            Text("Render del video").font(.system(size: 13, weight: .bold))
+            Text("Video render").font(.system(size: 13, weight: .bold))
             HStack(spacing: 8) {
                 ForEach(FormatoVideo.allCases) { f in scelta(f.rawValue, f == formato) { formato = f } }
             }
-            pulsante("Esporta il video nel Rullino", "square.and.arrow.down") { Task { await studio.esportaVideo(formato) } }
+            pulsante("Export the video to the Camera Roll", "square.and.arrow.down") { Task { await studio.esportaVideo(formato) } }
             Divider().overlay(Color(white: 0.2))
-            Text("Per i social").font(.system(size: 13, weight: .bold))
+            Text("For social media").font(.system(size: 13, weight: .bold))
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 8)], alignment: .leading, spacing: 8) {
                 ForEach(FormatoSocial.allCases) { f in scelta(f.rawValue, f == social) { social = f } }
             }
             HStack(spacing: 8) {
-                scelta("Riempi (taglia i bordi)", riempi) { riempi = true }
-                scelta("Adatta (bande nere)", !riempi) { riempi = false }
+                scelta("Fill (crops the edges)", riempi) { riempi = true }
+                scelta("Fit (black bars)", !riempi) { riempi = false }
             }
             HStack(spacing: 8) {
-                scelta("Questa clip", !montaggioIntero) { montaggioIntero = false }
-                scelta("Montaggio intero (\(studio.progetto.clips.count) clip)", montaggioIntero) { montaggioIntero = true }
+                scelta("This clip", !montaggioIntero) { montaggioIntero = false }
+                scelta("Whole edit (\(studio.progetto.clips.count) clips)", montaggioIntero) { montaggioIntero = true }
             }
-            pulsante("Esporta per \(social.rawValue)", "paperplane") {
+            pulsante("Export for \(social.rawValue)", "paperplane") {
                 Task {
                     if montaggioIntero { await studio.esportaMontaggio(social, riempi: social == .originale ? false : riempi) }
                     else { await studio.esportaSocial(social, riempi: riempi) }
                 }
             }
-            Text("Il file finisce nel Rullino del telefono. Le LUT e i CDL si salvano dalla pagina Deliver del telefono.")
+            Text("The file ends up in the phone's Camera Roll. LUTs and CDLs are saved from the phone's Deliver page.")
                 .font(.system(size: 11)).foregroundStyle(Tema.testo2)
         }
     }
@@ -2008,7 +2008,7 @@ struct AnteprimaMonitor: View {
             if CommandLine.arguments.contains("-provaZone") {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 12) { MainActor.assumeIsolated {
                     for (id, z) in ZoneMonitor.condivise.zone where id.hasPrefix("ruota.") || id.hasPrefix("master.") || id.hasPrefix("valore.Temp") {
-                        GestoreMonitor.scrivi("zona \(id) \(Int(z.riquadro.minX)),\(Int(z.riquadro.minY)) \(Int(z.riquadro.width))x\(Int(z.riquadro.height))")
+                        GestoreMonitor.scrivi("zone \(id) \(Int(z.riquadro.minX)),\(Int(z.riquadro.minY)) \(Int(z.riquadro.width))x\(Int(z.riquadro.height))")
                     }
                 } }
             }
@@ -2021,8 +2021,8 @@ struct AnteprimaMonitor: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { MainActor.assumeIsolated {
                         let p = CGPoint(x: n[0], y: n[1])
                         s.puntatore = p
-                        guard let (id, _) = ZoneMonitor.condivise.zona(in: p, dove: { $0.trascina != nil }) else { GestoreMonitor.scrivi("prova: nessuna zona"); return }
-                        GestoreMonitor.scrivi("prova: zona \(id)")
+                        guard let (id, _) = ZoneMonitor.condivise.zona(in: p, dove: { $0.trascina != nil }) else { GestoreMonitor.scrivi("test: no zone"); return }
+                        GestoreMonitor.scrivi("test: zone \(id)")
                         s.iniziaTrascinamento(id, da: p)
                         for _ in 0..<5 { s.trascinaMonitor(CGSize(width: n[2] / 5, height: n[3] / 5), zona: id) }
                     } }
@@ -2040,9 +2040,9 @@ struct AnteprimaMonitor: View {
                         // "#id" = clic al centro della zona con quel nome; "x,y" = clic in quel punto
                         var q: [Double] = v.split(separator: ",").compactMap { Double($0) }
                         if v.hasPrefix("#"), let z = ZoneMonitor.condivise.zone[String(v.dropFirst())] { q = [z.riquadro.midX, z.riquadro.midY] }
-                        guard q.count == 2 else { GestoreMonitor.scrivi("prova serie: zona \(v) non trovata"); return }
+                        guard q.count == 2 else { GestoreMonitor.scrivi("series test: zone \(v) not found"); return }
                         s.puntatore = CGPoint(x: q[0], y: q[1]); s.clicMonitor()
-                        GestoreMonitor.scrivi("prova serie: clic su \(ZoneMonitor.condivise.zona(in: CGPoint(x: q[0], y: q[1]))?.id ?? "niente")")
+                        GestoreMonitor.scrivi("series test: click on \(ZoneMonitor.condivise.zona(in: CGPoint(x: q[0], y: q[1]))?.id ?? "nothing")")
                     } }
                 }
             }
@@ -2062,10 +2062,10 @@ struct AnteprimaMonitor: View {
                     s.richiestaPagina = .edit
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) { MainActor.assumeIsolated {
                         s.puntatore = CGPoint(x: n[0], y: n[1]); s.clicMonitor()
-                        GestoreMonitor.scrivi("prova edit: clic 1 su \(ZoneMonitor.condivise.zona(in: CGPoint(x: n[0], y: n[1]))?.id ?? "niente")")
+                        GestoreMonitor.scrivi("edit test: click 1 on \(ZoneMonitor.condivise.zona(in: CGPoint(x: n[0], y: n[1]))?.id ?? "nothing")")
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { MainActor.assumeIsolated {
                             s.puntatore = CGPoint(x: n[2], y: n[3]); s.clicMonitor()
-                            GestoreMonitor.scrivi("prova edit: clic 2 su \(ZoneMonitor.condivise.zona(in: CGPoint(x: n[2], y: n[3]))?.id ?? "niente"), clip \(s.progetto.clips.count)")
+                            GestoreMonitor.scrivi("edit test: click 2 on \(ZoneMonitor.condivise.zona(in: CGPoint(x: n[2], y: n[3]))?.id ?? "nothing"), clips \(s.progetto.clips.count)")
                         } }
                     } }
                 } }
@@ -2073,7 +2073,7 @@ struct AnteprimaMonitor: View {
             // prova: scrive nel registro dove sono le zone cliccabili
             DispatchQueue.main.asyncAfter(deadline: .now() + 7) { MainActor.assumeIsolated {
                 for (id, z) in ZoneMonitor.condivise.zone.sorted(by: { $0.key < $1.key }) {
-                    GestoreMonitor.scrivi("zona \(id) \(Int(z.riquadro.minX)),\(Int(z.riquadro.minY)) \(Int(z.riquadro.width))x\(Int(z.riquadro.height))")
+                    GestoreMonitor.scrivi("zone \(id) \(Int(z.riquadro.minX)),\(Int(z.riquadro.minY)) \(Int(z.riquadro.width))x\(Int(z.riquadro.height))")
                 }
             } }
         }
@@ -2115,9 +2115,9 @@ private struct MediaPoolMonitor: View {
             // schede come in DaVinci: Media Pool (clip) e Musica (Sound Library)
             HStack(spacing: 4) {
                 scheda("Media Pool", "photo.on.rectangle", !studio.poolMusica && !libreriaAperta && !progettiAperti) { studio.poolMusica = false; libreriaAperta = false; progettiAperti = false }
-                scheda("Importa", "plus.rectangle.on.folder", libreriaAperta && !studio.poolMusica && !progettiAperti) { studio.poolMusica = false; libreriaAperta = true; progettiAperti = false }
-                scheda("Musica", "music.note", studio.poolMusica && !progettiAperti) { studio.poolMusica = true; progettiAperti = false }
-                scheda("Progetti", "folder", progettiAperti) { progettiAperti = true }
+                scheda("Import", "plus.rectangle.on.folder", libreriaAperta && !studio.poolMusica && !progettiAperti) { studio.poolMusica = false; libreriaAperta = true; progettiAperti = false }
+                scheda("Music", "music.note", studio.poolMusica && !progettiAperti) { studio.poolMusica = true; progettiAperti = false }
+                scheda("Projects", "folder", progettiAperti) { progettiAperti = true }
                 Spacer()
             }
             .padding(.horizontal, 8).frame(height: 34)
@@ -2164,8 +2164,8 @@ private struct MediaPoolMonitor: View {
                                      trascina: { _, _ in TrascinoMedia.condiviso.muovi(.pool(e.id), miniatura: Archivio.immagine("Miniature", e.miniatura)) },
                                      destro: {
                                          MenuMonitor.condiviso.apri([
-                                             VoceMenuMonitor(titolo: "Aggiungi alla timeline", icona: "plus.rectangle.on.rectangle") { Task { await studio.usaDalPool(e.id) } },
-                                             VoceMenuMonitor(titolo: "Togli dal Media Pool", icona: "trash", distruttiva: true) { studio.togliDalPool(e.id) },
+                                             VoceMenuMonitor(titolo: "Add to timeline", icona: "plus.rectangle.on.rectangle") { Task { await studio.usaDalPool(e.id) } },
+                                             VoceMenuMonitor(titolo: "Remove from Media Pool", icona: "trash", distruttiva: true) { studio.togliDalPool(e.id) },
                                          ])
                                      })
                     }
@@ -2175,9 +2175,9 @@ private struct MediaPoolMonitor: View {
             .scrollBounceBehavior(.basedOnSize)
             .onAppear { studio.riempiPoolDaClips() }
             if studio.progetto.pool.isEmpty {
-                Text("Media Pool vuoto: apri «Importa» e clicca i video o le foto da portare qui.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding()
+                Text("Media Pool empty: open «Import» and click the videos or photos to bring here.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding()
             }
-            Text("Tieni premuto e trascina un media sulla timeline per usarlo · tasto destro per il menu")
+            Text("Press and hold and drag a media item onto the timeline to use it · right-click for the menu")
                 .font(.system(size: 10)).foregroundStyle(Tema.testo2).padding(.horizontal, 10).padding(.bottom, 6)
     }
 }
@@ -2189,9 +2189,9 @@ private struct MusicaMonitor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Nel montaggio").font(.system(size: 11, weight: .semibold)).foregroundStyle(Tema.testo2).padding(.horizontal, 10).padding(.top, 8)
+            Text("In the edit").font(.system(size: 11, weight: .semibold)).foregroundStyle(Tema.testo2).padding(.horizontal, 10).padding(.top, 8)
             if studio.progetto.musiche.isEmpty {
-                Text("Nessuna musica: aggiungila qui sotto.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(.horizontal, 10)
+                Text("No music: add it below.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(.horizontal, 10)
             }
             ForEach(studio.progetto.musiche) { m in
                 HStack(spacing: 8) {
@@ -2208,31 +2208,31 @@ private struct MusicaMonitor: View {
             }
             // brani dell'app Musica e file audio messi nella cartella Colors (app File): si scelgono da qui
             BraniMonitor(studio: studio)
-            Text("Da file e chiavette collegate · clic per aggiungere").font(.system(size: 11, weight: .semibold)).foregroundStyle(Tema.testo2).padding(.horizontal, 10)
+            Text("From files and linked drives · click to add").font(.system(size: 11, weight: .semibold)).foregroundStyle(Tema.testo2).padding(.horizontal, 10)
             EsploraFileMonitor(studio: studio, tipi: [.audio, .video]) { c, u, tipo in
                 guard let base = CartelleCollegate.condivise.apri(c) else { return }
                 Task {
                     defer { base.stopAccessingSecurityScopedResource() }
                     if let p = await FormatoFile.problema(u, video: false) { studio.messaggio = p; return }
                     if tipo == .audio { await studio.aggiungiMusica(u); await studio.aggiornaDurate() }
-                    else if !(await studio.aggiungiAudio(daVideo: u, nome: u.deletingPathExtension().lastPathComponent)) { studio.messaggio = "In questo video non c'è audio." }
+                    else if !(await studio.aggiungiAudio(daVideo: u, nome: u.deletingPathExtension().lastPathComponent)) { studio.messaggio = "This video has no audio." }
                 }
             }
             .frame(height: 170)
-            Text("Altri file: mettili nell'app File › Sul mio iPhone › Colors e compaiono qui.")
+            Text("Other files: put them in the Files app › On My iPhone › Colors and they show up here.")
                 .font(.system(size: 10)).foregroundStyle(Tema.testo2)
                 .padding(.horizontal, 10)
             HStack {
-                Text("Audio dai video della Libreria · clic per aggiungerlo").font(.system(size: 11, weight: .semibold)).foregroundStyle(Tema.testo2)
+                Text("Audio from Library videos · click to add it").font(.system(size: 11, weight: .semibold)).foregroundStyle(Tema.testo2)
                 Spacer()
-                if libreria.importando { Text("Importo…").font(.system(size: 11)).foregroundStyle(Tema.accento) }
+                if libreria.importando { Text("Importing…").font(.system(size: 11)).foregroundStyle(Tema.accento) }
             }
             .padding(.horizontal, 10)
             switch libreria.stato {
             case .negato:
-                Text("Consenti l'accesso alle foto in Impostazioni › Colors › Foto.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(10)
+                Text("Allow access to photos in Settings › Colors › Photos.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(10)
             case .attesa:
-                Text("Rispondi sul telefono: Colors chiede di vedere la libreria Foto.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(10)
+                Text("Answer on the phone: Colors is asking to see the Photo library.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(10)
             case .pronta:
                 GeometryReader { g in
                     let colonne = max(2, Int(g.size.width / 120))
@@ -2298,14 +2298,14 @@ private struct TimelineMonitor: View {
         let s = Studio.condiviso
         vaiAllaClip(id)
         MenuMonitor.condiviso.apri([
-            VoceMenuMonitor(titolo: "Dividi alla testina", icona: "scissors") { s.dividiAllaTestina() },
-            VoceMenuMonitor(titolo: "Duplica", icona: "plus.square.on.square") { s.duplicaClip(id); s.aggiornaSequenza() },
-            VoceMenuMonitor(titolo: "Sposta a sinistra", icona: "arrow.left") { s.spostaClip(id, di: -1); s.aggiornaSequenza() },
-            VoceMenuMonitor(titolo: "Sposta a destra", icona: "arrow.right") { s.spostaClip(id, di: 1); s.aggiornaSequenza() },
-            VoceMenuMonitor(titolo: "Apri nella pagina Color", icona: "circle.lefthalf.filled") {
+            VoceMenuMonitor(titolo: "Split at playhead", icona: "scissors") { s.dividiAllaTestina() },
+            VoceMenuMonitor(titolo: "Duplicate", icona: "plus.square.on.square") { s.duplicaClip(id); s.aggiornaSequenza() },
+            VoceMenuMonitor(titolo: "Move left", icona: "arrow.left") { s.spostaClip(id, di: -1); s.aggiornaSequenza() },
+            VoceMenuMonitor(titolo: "Move right", icona: "arrow.right") { s.spostaClip(id, di: 1); s.aggiornaSequenza() },
+            VoceMenuMonitor(titolo: "Open in the Color page", icona: "circle.lefthalf.filled") {
                 Task { await s.apriClip(id) }; s.richiestaPagina = .color
             },
-            VoceMenuMonitor(titolo: "Elimina dal montaggio", icona: "trash", distruttiva: true) {
+            VoceMenuMonitor(titolo: "Delete from the edit", icona: "trash", distruttiva: true) {
                 Task { await s.eliminaClip(id); s.aggiornaSequenza(ritardo: 0) }
             },
         ])
@@ -2384,7 +2384,7 @@ private struct TimelineMonitor: View {
     }
 
     private func tagliaAlPuntatore() {
-        guard !videoBloccato else { GestoreMonitor.scrivi("taglio: traccia bloccata"); return }
+        guard !videoBloccato else { GestoreMonitor.scrivi("trim: track locked"); return }
         guard let t = TimelineMonitor.tempoAlPuntatore(zoom: zoom),
               let i = studio.posizioniClip.firstIndex(where: { t > $0.inizio && t < $0.inizio + $0.durata }) else { return }
         studio.vaiSequenza(t)
@@ -2426,24 +2426,24 @@ private struct TimelineMonitor: View {
 
     private var strumenti: some View {
         HStack(spacing: 4) {
-            StrumentoTimeline(simbolo: "cursorarrow", nome: "Selezione (freccia)", acceso: !lama) { lama = false }
-            StrumentoTimeline(simbolo: "scissors", nome: "Lama: clic su una clip per tagliarla", acceso: lama, rosso: true) { lama = true }
+            StrumentoTimeline(simbolo: "cursorarrow", nome: "Selection (arrow)", acceso: !lama) { lama = false }
+            StrumentoTimeline(simbolo: "scissors", nome: "Blade: click a clip to cut it", acceso: lama, rosso: true) { lama = true }
             separatore
-            StrumentoTimeline(simbolo: "rectangle.split.2x1", nome: "Dividi alla testina") { if !videoBloccato { studio.dividiAllaTestina() } }
-            StrumentoTimeline(simbolo: "arrow.right.to.line", nome: "Rifila l'inizio alla testina") { if !videoBloccato { studio.rifilaAllaTestina(inizio: true) } }
-            StrumentoTimeline(simbolo: "arrow.left.to.line", nome: "Rifila la fine alla testina") { if !videoBloccato { studio.rifilaAllaTestina(inizio: false) } }
-            StrumentoTimeline(simbolo: "plus.square.on.square", nome: "Duplica la clip") {
+            StrumentoTimeline(simbolo: "rectangle.split.2x1", nome: "Split at playhead") { if !videoBloccato { studio.dividiAllaTestina() } }
+            StrumentoTimeline(simbolo: "arrow.right.to.line", nome: "Trim start to playhead") { if !videoBloccato { studio.rifilaAllaTestina(inizio: true) } }
+            StrumentoTimeline(simbolo: "arrow.left.to.line", nome: "Trim end to playhead") { if !videoBloccato { studio.rifilaAllaTestina(inizio: false) } }
+            StrumentoTimeline(simbolo: "plus.square.on.square", nome: "Duplicate clip") {
                 if !videoBloccato, let id = studio.clipAttiva { studio.duplicaClip(id); studio.aggiornaSequenza() }
             }
-            StrumentoTimeline(simbolo: "trash", nome: "Elimina la clip") {
+            StrumentoTimeline(simbolo: "trash", nome: "Delete clip") {
                 if !videoBloccato, let id = studio.clipAttiva { Task { await studio.eliminaClip(id); studio.aggiornaSequenza(ritardo: 0) } }
             }
             separatore
-            StrumentoTimeline(simbolo: "wand.and.stars", nome: "Dividi per scene (AI)") { if !videoBloccato { Task { await studio.dividiPerScene() } } }
+            StrumentoTimeline(simbolo: "wand.and.stars", nome: "Split by scenes (AI)") { if !videoBloccato { Task { await studio.dividiPerScene() } } }
             separatore
-            StrumentoTimeline(simbolo: "music.note.list", nome: "Aggiungi musica", acceso: studio.poolMusica) { studio.poolMusica.toggle() }
+            StrumentoTimeline(simbolo: "music.note.list", nome: "Add music", acceso: studio.poolMusica) { studio.poolMusica.toggle() }
             Spacer()
-            StrumentoTimeline(simbolo: "minus.magnifyingglass", nome: "Riduci") { zoom = max(8, zoom / 1.5) }
+            StrumentoTimeline(simbolo: "minus.magnifyingglass", nome: "Zoom out") { zoom = max(8, zoom / 1.5) }
             // barretta dello zoom come in DaVinci
             GeometryReader { g in
                 let t = (log(zoom) - log(8)) / (log(400) - log(8))
@@ -2455,7 +2455,7 @@ private struct TimelineMonitor: View {
                 .zonaMonitor("timeline.zoom", clic: { p in zoom = 8 * pow(50, p.x) }, trascina: { _, p in zoom = 8 * pow(50, min(1, max(0, p.x))) })
             }
             .frame(width: 110, height: 30)
-            StrumentoTimeline(simbolo: "plus.magnifyingglass", nome: "Ingrandisci") { zoom = min(400, zoom * 1.5) }
+            StrumentoTimeline(simbolo: "plus.magnifyingglass", nome: "Zoom in") { zoom = min(400, zoom * 1.5) }
         }
         .padding(.horizontal, 12).frame(height: 40)
         .background(Tema.pannello)
@@ -2517,11 +2517,11 @@ private struct TimelineMonitor: View {
                         .frame(width: max(2, CGFloat(v) * zoom), height: 74)
                         .zonaMonitor("vuoto." + c.id.uuidString,
                                      clic: { _ in MenuMonitor.condiviso.apri([
-                                        VoceMenuMonitor(titolo: "Elimina spazio (le clip dopo scorrono indietro)", icona: "arrow.left.to.line") { studio.chiudiSpazio(prima: c.id) },
+                                        VoceMenuMonitor(titolo: "Delete gap (following clips move back)", icona: "arrow.left.to.line") { studio.chiudiSpazio(prima: c.id) },
                                      ]) },
                                      destro: { MenuMonitor.condiviso.apri([
-                                        VoceMenuMonitor(titolo: "Elimina spazio (le clip dopo scorrono indietro)", icona: "arrow.left.to.line") { studio.chiudiSpazio(prima: c.id) },
-                                        VoceMenuMonitor(titolo: "Elimina tutti gli spazi", icona: "arrow.left.and.line.vertical.and.arrow.right") { studio.chiudiTuttiGliSpazi() },
+                                        VoceMenuMonitor(titolo: "Delete gap (following clips move back)", icona: "arrow.left.to.line") { studio.chiudiSpazio(prima: c.id) },
+                                        VoceMenuMonitor(titolo: "Delete all gaps", icona: "arrow.left.and.line.vertical.and.arrow.right") { studio.chiudiTuttiGliSpazi() },
                                      ]) })
                         .offset(x: CGFloat(pos[i].inizio - v) * zoom, y: 5)
                 }
@@ -2612,8 +2612,8 @@ private struct TimelineMonitor: View {
                 .overlay(RoundedRectangle(cornerRadius: 3).stroke(Color(white: 0.3), lineWidth: 1))
                 .zonaMonitor("a1." + m.id.uuidString, destro: {
                     MenuMonitor.condiviso.apri([
-                        VoceMenuMonitor(titolo: "Aggiungi altra musica", icona: "music.note.list") { studio.poolMusica = true },
-                        VoceMenuMonitor(titolo: "Togli questa musica", icona: "trash", distruttiva: true) { if !audioBloccato { studio.togliMusica(m.id) } },
+                        VoceMenuMonitor(titolo: "Add more music", icona: "music.note.list") { studio.poolMusica = true },
+                        VoceMenuMonitor(titolo: "Remove this music", icona: "trash", distruttiva: true) { if !audioBloccato { studio.togliMusica(m.id) } },
                     ])
                 })
                 .offset(x: CGFloat(i) * zoom, y: 5)
@@ -2874,13 +2874,13 @@ private struct ImportaEditMonitor: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 6) {
-                interruttoreSorgente("Libreria Foto", "photo.on.rectangle", !daFile) { daFile = false }
-                interruttoreSorgente("File e chiavette", "externaldrive", daFile) { daFile = true }
+                interruttoreSorgente("Photo Library", "photo.on.rectangle", !daFile) { daFile = false }
+                interruttoreSorgente("Files and drives", "externaldrive", daFile) { daFile = true }
                 Spacer()
             }
             .padding(.horizontal, 8).padding(.top, 6)
             if daFile {
-                Text("Clic su un video o una foto = nel Media Pool").font(.system(size: 10)).foregroundStyle(Tema.testo2)
+                Text("Click a video or photo = into the Media Pool").font(.system(size: 10)).foregroundStyle(Tema.testo2)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 10).padding(.top, 4)
                 EsploraFileMonitor(studio: studio, tipi: [.video, .foto]) { c, u, tipo in
                     guard let base = CartelleCollegate.condivise.apri(c) else { return }
@@ -2917,16 +2917,16 @@ private struct ImportaEditMonitor: View {
                         .zonaMonitor("edit.filtro." + f.rawValue, clic: { _ in libreria.filtro = f })
                 }
                 Spacer()
-                if libreria.importando { Text("Importo…").font(.system(size: 11)).foregroundStyle(Tema.accento) }
+                if libreria.importando { Text("Importing…").font(.system(size: 11)).foregroundStyle(Tema.accento) }
             }
             .padding(.horizontal, 8).frame(height: 32)
-            Text("Clic = porta nel Media Pool (poi da lì lo trascini nella timeline)")
+            Text("Click = bring into the Media Pool (then drag it from there onto the timeline)")
                 .font(.system(size: 10)).foregroundStyle(Tema.testo2).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 10)
             switch libreria.stato {
             case .negato:
-                Text("Consenti l'accesso alle foto in Impostazioni › Colors › Foto.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(10)
+                Text("Allow access to photos in Settings › Colors › Photos.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(10)
             case .attesa:
-                Text("Rispondi sul telefono: Colors chiede di vedere la libreria Foto.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(10)
+                Text("Answer on the phone: Colors is asking to see the Photo library.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(10)
             case .pronta:
                 GeometryReader { g in
                     let colonne = max(2, Int(g.size.width / 120))
@@ -2967,17 +2967,17 @@ private struct ProgettiMonitor: View {
     /// Tasto destro su un progetto salvato: apri, rinomina, elimina (con conferma).
     private func menu(_ p: Progetto) {
         MenuMonitor.condiviso.apri([
-            VoceMenuMonitor(titolo: "Apri", icona: "folder") { Task { await studio.apriProgetto(p.id); elenco = Archivio.elencoArchiviati() } },
-            VoceMenuMonitor(titolo: "Rinomina", icona: "pencil") {
-                studio.testoMonitor = TestoMonitor(titolo: "Rinomina progetto", testo: p.nome) { studio.rinominaProgetto(p.id, $0); elenco = Archivio.elencoArchiviati() }
+            VoceMenuMonitor(titolo: "Open", icona: "folder") { Task { await studio.apriProgetto(p.id); elenco = Archivio.elencoArchiviati() } },
+            VoceMenuMonitor(titolo: "Rename", icona: "pencil") {
+                studio.testoMonitor = TestoMonitor(titolo: "Rename project", testo: p.nome) { studio.rinominaProgetto(p.id, $0); elenco = Archivio.elencoArchiviati() }
             },
-            VoceMenuMonitor(titolo: "Elimina…", icona: "trash", distruttiva: true) {
+            VoceMenuMonitor(titolo: "Delete…", icona: "trash", distruttiva: true) {
                 // secondo menu per confermare: eliminare non si può annullare
                 MenuMonitor.condiviso.apri([
-                    VoceMenuMonitor(titolo: "Sì, elimina «\(p.nome)» per sempre", icona: "trash.fill", distruttiva: true) {
+                    VoceMenuMonitor(titolo: "Yes, delete «\(p.nome)» forever", icona: "trash.fill", distruttiva: true) {
                         studio.eliminaProgetto(p.id); elenco = Archivio.elencoArchiviati()
                     },
-                    VoceMenuMonitor(titolo: "No, lascialo", icona: "xmark") {},
+                    VoceMenuMonitor(titolo: "No, keep it", icona: "xmark") {},
                 ])
             },
         ])
@@ -2985,18 +2985,18 @@ private struct ProgettiMonitor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label("Nuovo progetto", systemImage: "doc.badge.plus").font(.system(size: 12, weight: .semibold))
+            Label("New project", systemImage: "doc.badge.plus").font(.system(size: 12, weight: .semibold))
                 .padding(.horizontal, 10).frame(height: 30)
                 .background(RoundedRectangle(cornerRadius: 6).fill(Tema.accento.opacity(0.2)))
                 .foregroundStyle(Tema.accento)
                 .zonaMonitor("progetti.nuovo", clic: { _ in
-                    Task { await studio.nuovoProgetto(nome: "Progetto \(Archivio.elencoArchiviati().count + 2)"); elenco = Archivio.elencoArchiviati() }
+                    Task { await studio.nuovoProgetto(nome: "Project \(Archivio.elencoArchiviati().count + 2)"); elenco = Archivio.elencoArchiviati() }
                 })
-            Text("Aperto: \(studio.progetto.nome) · \(studio.progetto.clips.count) clip").font(.system(size: 11)).foregroundStyle(Tema.testo2)
+            Text("Open: \(studio.progetto.nome) · \(studio.progetto.clips.count) clips").font(.system(size: 11)).foregroundStyle(Tema.testo2)
                 .zonaMonitor("progetto.aperto", destro: {
                     MenuMonitor.condiviso.apri([
-                        VoceMenuMonitor(titolo: "Rinomina", icona: "pencil") {
-                            studio.testoMonitor = TestoMonitor(titolo: "Rinomina progetto", testo: studio.progetto.nome) { studio.rinominaProgetto(studio.progetto.id, $0) }
+                        VoceMenuMonitor(titolo: "Rename", icona: "pencil") {
+                            studio.testoMonitor = TestoMonitor(titolo: "Rename project", testo: studio.progetto.nome) { studio.rinominaProgetto(studio.progetto.id, $0) }
                         },
                     ])
                 })
@@ -3007,7 +3007,7 @@ private struct ProgettiMonitor: View {
                             Image(systemName: "film.stack").foregroundStyle(Tema.accento)
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(p.nome).font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                                Text("\(p.clips.count) clip · \(p.modificato.formatted(date: .abbreviated, time: .shortened))").font(.system(size: 10)).foregroundStyle(Tema.testo2)
+                                Text("\(p.clips.count) clips · \(p.modificato.formatted(date: .abbreviated, time: .shortened))").font(.system(size: 10)).foregroundStyle(Tema.testo2)
                             }
                             Spacer()
                         }
@@ -3034,7 +3034,7 @@ private struct ProgettiMonitor: View {
 private struct BraniMonitor: View {
     @ObservedObject var studio: Studio
     @State private var brani: [(nome: String, url: URL, cartella: Bool)] = []
-    @State private var stato = "Cerco la musica…"
+    @State private var stato = "Looking for music…"
     @State private var importo = false
     @State private var scorri = ScrollPosition(edge: .top)
     @State private var y: CGFloat = 0
@@ -3042,7 +3042,7 @@ private struct BraniMonitor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("La tua musica · clic per aggiungerla").font(.system(size: 11, weight: .semibold)).foregroundStyle(Tema.testo2).padding(.horizontal, 10)
+            Text("Your music · click to add it").font(.system(size: 11, weight: .semibold)).foregroundStyle(Tema.testo2).padding(.horizontal, 10)
             if brani.isEmpty {
                 Text(stato).font(.system(size: 11)).foregroundStyle(Tema.testo2).padding(.horizontal, 10)
             }
@@ -3067,7 +3067,7 @@ private struct BraniMonitor: View {
             .scrollPosition($scorri)
             .onScrollGeometryChange(for: CGFloat.self) { max(0, $0.contentSize.height - $0.containerSize.height) } action: { _, m in massimo = m }
             .zonaMonitor("brani.scorri", trascina: { d, _ in y = min(massimo, max(0, y - d.height)); scorri.scrollTo(y: y) })
-            if importo { Text("Aggiungo…").font(.system(size: 11)).foregroundStyle(Tema.accento).padding(.horizontal, 10) }
+            if importo { Text("Adding…").font(.system(size: 11)).foregroundStyle(Tema.accento).padding(.horizontal, 10) }
         }
         .task { await cerca() }
     }
@@ -3089,10 +3089,10 @@ private struct BraniMonitor: View {
             MPMediaLibrary.requestAuthorization { c.resume(returning: $0 == .authorized) }
         }
         if ok, let elementi = MPMediaQuery.songs().items {
-            for e in elementi { if let u = e.assetURL, !e.hasProtectedAsset { r.append((e.title ?? "Brano", u, false)) } }
+            for e in elementi { if let u = e.assetURL, !e.hasProtectedAsset { r.append((e.title ?? "Track", u, false)) } }
         }
         brani = r.map { (nome: $0.0, url: $0.1, cartella: $0.2) }
-        stato = r.isEmpty ? (ok ? "Nessun brano scaricato nell'app Musica e nessun file audio nella cartella Colors (app File)." : "Per vedere i brani consenti l'accesso a Musica in Impostazioni › Colors.") : ""
+        stato = r.isEmpty ? (ok ? "No songs downloaded in the Music app and no audio files in the Colors folder (Files app)." : "To see your songs allow access to Music in Settings › Colors.") : ""
     }
 
     private func aggiungi(_ b: (nome: String, url: URL, cartella: Bool)) {
@@ -3105,7 +3105,7 @@ private struct BraniMonitor: View {
             let uscita = FileManager.default.temporaryDirectory.appendingPathComponent(b.nome.replacingOccurrences(of: "/", with: "-") + ".m4a")
             try? FileManager.default.removeItem(at: uscita)
             guard let e = AVAssetExportSession(asset: AVURLAsset(url: b.url), presetName: AVAssetExportPresetAppleM4A) else {
-                studio.messaggio = "Non riesco a leggere questo brano."; return
+                studio.messaggio = "Can't read this song."; return
             }
             do {
                 try await e.export(to: uscita, as: .m4a)
@@ -3113,7 +3113,7 @@ private struct BraniMonitor: View {
                 await studio.aggiornaDurate()
                 try? FileManager.default.removeItem(at: uscita)
             } catch {
-                studio.messaggio = "Non riesco a copiare questo brano: \(error.localizedDescription)"
+                studio.messaggio = "Can't copy this song: \(error.localizedDescription)"
             }
         }
     }
@@ -3177,27 +3177,27 @@ private struct BenvenutoMonitor: View {
             Color.black.opacity(0.55)
             VStack(alignment: .leading, spacing: 14) {
                 if !chiediSalvataggio {
-                    Text("Bentornato").font(.system(size: 22, weight: .bold))
-                    Text("Vuoi continuare da dove avevi lasciato (\(studio.progetto.clips.count) clip) o iniziare un progetto nuovo?")
+                    Text("Welcome back").font(.system(size: 22, weight: .bold))
+                    Text("Do you want to continue where you left off (\(studio.progetto.clips.count) clips) or start a new project?")
                         .font(.system(size: 14)).foregroundStyle(Color(white: 0.8))
                     HStack(spacing: 10) {
-                        tasto("Continua «\(studio.progetto.nome)»", primario: true, id: "continua") { studio.benvenutoMonitor = false }
-                        tasto("Nuovo progetto", primario: false, id: "nuovo") { chiediSalvataggio = true }
+                        tasto("Continue «\(studio.progetto.nome)»", primario: true, id: "continua") { studio.benvenutoMonitor = false }
+                        tasto("New project", primario: false, id: "nuovo") { chiediSalvataggio = true }
                     }
                 } else {
-                    Text("Salvare «\(studio.progetto.nome)»?").font(.system(size: 22, weight: .bold))
-                    Text("Sì: resta nei Progetti e lo puoi riaprire quando vuoi.\nNo: viene cancellato con le sue clip copiate nell'app (le foto e i video della Libreria non si toccano).")
+                    Text("Save «\(studio.progetto.nome)»?").font(.system(size: 22, weight: .bold))
+                    Text("Yes: it stays in Projects and you can reopen it whenever you want.\nNo: it is deleted along with the clips copied into the app (the photos and videos in the Library are not touched).")
                         .font(.system(size: 13)).foregroundStyle(Color(white: 0.8))
                     HStack(spacing: 10) {
-                        tasto("Sì, salva", primario: true, id: "si") {
+                        tasto("Yes, save", primario: true, id: "si") {
                             studio.benvenutoMonitor = false
-                            Task { await studio.nuovoProgetto(nome: "Progetto \(Archivio.elencoArchiviati().count + 2)"); studio.richiestaPagina = .media }
+                            Task { await studio.nuovoProgetto(nome: "Project \(Archivio.elencoArchiviati().count + 2)"); studio.richiestaPagina = .media }
                         }
                         tasto("No", primario: false, rosso: true, id: "no") {
                             studio.benvenutoMonitor = false
                             Task { await studio.nuovoProgetto(nome: "", salvaPrecedente: false); studio.richiestaPagina = .media }
                         }
-                        tasto("Annulla", primario: false, id: "annulla") { chiediSalvataggio = false }
+                        tasto("Cancel", primario: false, id: "annulla") { chiediSalvataggio = false }
                     }
                 }
             }
@@ -3243,11 +3243,11 @@ private struct DialogoTestoMonitor: View {
                     .padding(.horizontal, 12).frame(height: 40)
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.07)))
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Tema.accento, lineWidth: 1.5))
-                    Text("Scrivi con la tastiera del telefono (o con una tastiera collegata) · Invio = OK")
+                    Text("Type with the phone's keyboard (or a connected keyboard) · Return = OK")
                         .font(.system(size: 12)).foregroundStyle(Tema.testo2)
                     HStack(spacing: 10) {
                         Spacer()
-                        tasto("Annulla", primario: false) { studio.testoMonitor = nil }
+                        tasto("Cancel", primario: false) { studio.testoMonitor = nil }
                         tasto("OK", primario: true) { DialogoTestoMonitor.conferma(studio) }
                     }
                 }
@@ -3287,8 +3287,8 @@ private struct AvvisoAssistiveTouchMonitor: View {
     var body: some View {
         if mouse.mostraAvvisoAssistiveTouch, !CommandLine.arguments.contains("-anteprimaMonitor") {
             VStack(alignment: .leading, spacing: 4) {
-                Label("Mouse collegato: accendi AssistiveTouch", systemImage: "hand.point.up.left.fill").font(.system(size: 14, weight: .bold))
-                Text("Premi 3 volte il tasto laterale del telefono (o Impostazioni › Accessibilità › Tocco › AssistiveTouch).")
+                Label("Mouse connected: turn on AssistiveTouch", systemImage: "hand.point.up.left.fill").font(.system(size: 14, weight: .bold))
+                Text("Press the phone's side button 3 times (or Settings › Accessibility › Touch › AssistiveTouch).")
                     .font(.system(size: 12))
             }
             .padding(14)
@@ -3455,7 +3455,7 @@ private struct ContagocceSulMonitor: View {
                         }, destro: { studio.contagocce = .nessuno })
                         // lo spostamento dopo la zona: così la zona sta sopra il video (prima era nel posto sbagliato)
                         .offset(x: r.minX, y: r.minY)
-                    Label("Contagocce: clic sul colore da prendere · tasto destro = annulla", systemImage: "eyedropper")
+                    Label("Eyedropper: click the color to pick · right-click = cancel", systemImage: "eyedropper")
                         .font(.system(size: 12, weight: .bold))
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .background(Capsule().fill(Tema.accento)).foregroundStyle(.black)
@@ -3480,7 +3480,7 @@ private struct ColorePresoMonitor: View {
                     .frame(width: 38, height: 38)
                     .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.white.opacity(0.8), lineWidth: 1))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Colore preso · \(uso)").font(.system(size: 12, weight: .bold))
+                    Text("Color picked · \(uso)").font(.system(size: 12, weight: .bold))
                     Text("R \(Int(c.x * 255))  G \(Int(c.y * 255))  B \(Int(c.z * 255))")
                         .font(.system(size: 12, design: .monospaced))
                 }

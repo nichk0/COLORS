@@ -15,18 +15,18 @@ enum ContenitoreRender: String, CaseIterable, Identifiable {
 
 /// Cosa si esporta: tutta la timeline o solo la clip aperta (il menu "Render" sotto il viewer).
 enum CosaRender: String, CaseIterable, Identifiable {
-    case montaggio = "Intera timeline", clip = "Clip attiva"
+    case montaggio = "Entire timeline", clip = "Active clip"
     var id: String { rawValue }
 }
 
 /// Un file solo o un file per ogni clip ("Single clip" / "Individual clips").
 enum ModoRender: String, CaseIterable, Identifiable {
-    case singolo = "Clip singola", individuali = "Clip individuali"
+    case singolo = "Single clip", individuali = "Individual clips"
     var id: String { rawValue }
 }
 
 enum QualitaRender: String, CaseIterable, Identifiable {
-    case massima = "Massima", media = "Media"
+    case massima = "Best", media = "Media"
     var id: String { rawValue }
 }
 
@@ -36,19 +36,19 @@ struct RisoluzioneRender: Hashable, Identifiable {
     var id: String { nome }
 
     static let tutte: [RisoluzioneRender] = [
-        .init(nome: "Come la timeline", misura: nil),
+        .init(nome: "Same as timeline", misura: nil),
         .init(nome: "3840 × 2160 Ultra HD", misura: CGSize(width: 3840, height: 2160)),
         .init(nome: "1920 × 1080 HD", misura: CGSize(width: 1920, height: 1080)),
         .init(nome: "1280 × 720 HD", misura: CGSize(width: 1280, height: 720)),
-        .init(nome: "2160 × 3840 Verticale 4K", misura: CGSize(width: 2160, height: 3840)),
-        .init(nome: "1080 × 1920 Verticale", misura: CGSize(width: 1080, height: 1920)),
+        .init(nome: "2160 × 3840 Vertical 4K", misura: CGSize(width: 2160, height: 3840)),
+        .init(nome: "1080 × 1920 Vertical", misura: CGSize(width: 1080, height: 1920)),
         .init(nome: "1080 × 1350 4:5", misura: CGSize(width: 1080, height: 1350)),
-        .init(nome: "1080 × 1080 Quadrato", misura: CGSize(width: 1080, height: 1080)),
+        .init(nome: "1080 × 1080 Square", misura: CGSize(width: 1080, height: 1080)),
     ]
 }
 
 struct ImpostazioniRender: Equatable {
-    var preset = "Personalizzato"
+    var preset = "Custom"
     var nomeFile = "Colors"
     var cosa: CosaRender = .montaggio
     var modo: ModoRender = .singolo
@@ -67,7 +67,7 @@ struct ImpostazioniRender: Equatable {
     var contenitoreVero: ContenitoreRender { codec == .prores ? .mov : contenitore }
     var estensione: String { contenitoreVero == .mov ? "mov" : "mp4" }
     var tipoFile: AVFileType { contenitoreVero == .mov ? .mov : .mp4 }
-    var codecAudio: String { codec == .prores ? "PCM lineare 24 bit" : "AAC" }
+    var codecAudio: String { codec == .prores ? "Linear PCM 24-bit" : "AAC" }
 
     /// Peso stimato in MB (bitrate tipici, riferiti a 1080p a 30 fps).
     func stimaMB(durata: Double, misuraSorgente: CGSize?) -> Double {
@@ -95,7 +95,7 @@ struct PresetRender: Identifiable {
     var id: String { nome }
 
     static let tutti: [PresetRender] = [
-        .init(nome: "Personalizzato", icona: "slider.horizontal.3") { _ in },
+        .init(nome: "Custom", icona: "slider.horizontal.3") { _ in },
         .init(nome: "H.264 Master", icona: "film") { s in
             s.codec = .h264; s.contenitore = .mov; s.qualita = .massima; s.risoluzione = RisoluzioneRender.tutte[0]; s.fps = 0
         },
@@ -142,7 +142,7 @@ struct ImpostazioniRenderMonitor: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            testata("Impostazioni render", destra: s.preset)
+            testata("Render settings", destra: s.preset)
             // fila di preset
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
@@ -169,29 +169,29 @@ struct ImpostazioniRenderMonitor: View {
             .background(Color(white: 0.085))
             ScrollView {
                 VStack(alignment: .leading, spacing: 9) {
-                    riga("Nome file") {
+                    riga("File name") {
                         Text(s.nomeFile).font(.system(size: 12)).lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 8).frame(height: 24)
                             .background(RoundedRectangle(cornerRadius: 4).fill(Color(white: 0.07)))
                             .zonaMonitor("render.nomeFile", clic: { _ in
                                 let st = Studio.condiviso
-                                st.testoMonitor = TestoMonitor(titolo: "Nome del file", testo: st.impostazioniRender.nomeFile) { st.impostazioniRender.nomeFile = $0 }
+                                st.testoMonitor = TestoMonitor(titolo: "File name", testo: st.impostazioniRender.nomeFile) { st.impostazioniRender.nomeFile = $0 }
                             })
                     }
-                    riga("Posizione") {
+                    riga("Position") {
                         let cart = CartelleCollegate.condivise.tutte.first { $0.id == s.cartella }
-                        Label(cart?.nome ?? "Rullino foto", systemImage: cart == nil ? "photo.on.rectangle" : "externaldrive")
+                        Label(cart?.nome ?? "Camera Roll", systemImage: cart == nil ? "photo.on.rectangle" : "externaldrive")
                             .font(.system(size: 12)).foregroundStyle(Color(white: 0.85))
                         Spacer()
                         Image(systemName: "chevron.down").font(.system(size: 10)).foregroundStyle(Tema.testo2)
                     }
                     .zonaMonitor("render.posizione", clic: { _ in
-                        var voci = [VoceMenuMonitor(titolo: "Rullino foto", icona: "photo.on.rectangle") { Studio.condiviso.impostazioniRender.cartella = nil }]
+                        var voci = [VoceMenuMonitor(titolo: "Camera Roll", icona: "photo.on.rectangle") { Studio.condiviso.impostazioniRender.cartella = nil }]
                         voci += CartelleCollegate.condivise.tutte.map { c in
                             VoceMenuMonitor(titolo: c.nome, icona: "externaldrive") { Studio.condiviso.impostazioniRender.cartella = c.id }
                         }
-                        voci.append(VoceMenuMonitor(titolo: "Collega una cartella o chiavetta…", icona: "plus.circle") { Studio.condiviso.richiestaCartella = true })
+                        voci.append(VoceMenuMonitor(titolo: "Link a folder or drive…", icona: "plus.circle") { Studio.condiviso.richiestaCartella = true })
                         MenuMonitor.condiviso.apri(voci)
                     })
                     HStack(spacing: 0) {
@@ -225,13 +225,13 @@ struct ImpostazioniRenderMonitor: View {
             // in fondo: peso stimato e "Aggiungi alla coda di render"
             VStack(spacing: 8) {
                 HStack {
-                    Text("Dimensione stimata").font(.system(size: 11)).foregroundStyle(Tema.testo2)
+                    Text("Estimated size").font(.system(size: 11)).foregroundStyle(Tema.testo2)
                     Spacer()
                     Text(Self.peso(s.stimaMB(durata: studio.durataRender, misuraSorgente: studio.misuraSorgente)))
                         .font(.system(size: 11, design: .monospaced))
                 }
                 Button { studio.aggiungiAllaCoda() } label: {
-                    Text("Aggiungi alla coda di render").font(.system(size: 13, weight: .bold))
+                    Text("Add to render queue").font(.system(size: 13, weight: .bold))
                         .frame(maxWidth: .infinity).frame(height: 34)
                         .background(RoundedRectangle(cornerRadius: 6).fill(Tema.accento))
                         .foregroundStyle(.black)
@@ -245,8 +245,8 @@ struct ImpostazioniRenderMonitor: View {
 
     private var schedaVideo: some View {
         VStack(alignment: .leading, spacing: 9) {
-            riga("Esporta video") { interruttore(s.video) { studio.impostazioniRender.video.toggle() }; Spacer() }
-            riga("Formato") {
+            riga("Export video") { interruttore(s.video) { studio.impostazioniRender.video.toggle() }; Spacer() }
+            riga("Format") {
                 tendina(s.contenitoreVero.rawValue, attiva: s.codec != .prores) {
                     ContenitoreRender.allCases.map { c in VoceMenuMonitor(titolo: c.rawValue, icona: "shippingbox") { Studio.condiviso.impostazioniRender.contenitore = c } }
                 }
@@ -257,55 +257,55 @@ struct ImpostazioniRenderMonitor: View {
                 }
             }
             if s.codec != .prores {
-                riga("Qualità") {
+                riga("Quality") {
                     tendina(s.qualita.rawValue) {
                         QualitaRender.allCases.map { q in VoceMenuMonitor(titolo: q.rawValue, icona: "dial.medium") { Studio.condiviso.impostazioniRender.qualita = q } }
                     }
                 }
             }
-            riga("Risoluzione") {
+            riga("Resolution") {
                 tendina(s.risoluzione.nome) {
                     RisoluzioneRender.tutte.map { r in VoceMenuMonitor(titolo: r.nome, icona: "aspectratio") { Studio.condiviso.impostazioniRender.risoluzione = r } }
                 }
             }
             if s.risoluzione.misura != nil {
-                riga("Adattamento") {
+                riga("Scaling") {
                     HStack(spacing: 0) {
-                        segmento("Adatta", !s.riempi) { studio.impostazioniRender.riempi = false }
-                        segmento("Riempi", s.riempi) { studio.impostazioniRender.riempi = true }
+                        segmento("Fit", !s.riempi) { studio.impostazioniRender.riempi = false }
+                        segmento("Fill", s.riempi) { studio.impostazioniRender.riempi = true }
                     }
                 }
             }
             riga("Frame rate") {
-                tendina(s.fps == 0 ? "Come il materiale" : "\(s.fps) fps") {
+                tendina(s.fps == 0 ? "Same as source" : "\(s.fps) fps") {
                     [0, 24, 25, 30, 50, 60].map { f in
-                        VoceMenuMonitor(titolo: f == 0 ? "Come il materiale" : "\(f) fps", icona: "speedometer") { Studio.condiviso.impostazioniRender.fps = f }
+                        VoceMenuMonitor(titolo: f == 0 ? "Same as source" : "\(f) fps", icona: "speedometer") { Studio.condiviso.impostazioniRender.fps = f }
                     }
                 }
             }
-            Text(s.codec == .prores ? "ProRes 422 HQ 10 bit: qualità master, file grandi. Ideale per riportare il lavoro su DaVinci."
-                 : s.codec == .hevc ? "H.265 10 bit: metà peso dell'H.264 a pari qualità."
-                 : "H.264: si apre ovunque, adatto a social e condivisione.")
+            Text(s.codec == .prores ? "ProRes 422 HQ 10-bit: master quality, large files. Ideal for bringing the work back into DaVinci."
+                 : s.codec == .hevc ? "H.265 10-bit: half the size of H.264 at the same quality."
+                 : "H.264: opens everywhere, good for social media and sharing.")
                 .font(.system(size: 10)).foregroundStyle(Tema.testo2).fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private var schedaAudio: some View {
         VStack(alignment: .leading, spacing: 9) {
-            riga("Esporta audio") { interruttore(s.audio) { studio.impostazioniRender.audio.toggle() }; Spacer() }
+            riga("Export audio") { interruttore(s.audio) { studio.impostazioniRender.audio.toggle() }; Spacer() }
             if s.audio {
                 riga("Codec") { Text(s.codecAudio).font(.system(size: 12)); Spacer() }
-                riga("Frequenza") { Text("48000 Hz").font(.system(size: 12)); Spacer() }
-                riga("Canali") { Text("Stereo").font(.system(size: 12)); Spacer() }
+                riga("Sample rate") { Text("48000 Hz").font(.system(size: 12)); Spacer() }
+                riga("Channels") { Text("Stereo").font(.system(size: 12)); Spacer() }
             }
         }
     }
 
     private var schedaFile: some View {
         VStack(alignment: .leading, spacing: 9) {
-            riga("Nome") { Text("\(s.nomeFile).\(s.estensione)").font(.system(size: 12, design: .monospaced)); Spacer() }
-            riga("Contenitore") { Text(s.contenitoreVero.rawValue).font(.system(size: 12)); Spacer() }
-            Text(s.modo == .individuali ? "Un file per ogni clip della timeline, con il nome della clip in coda." : "Un solo file con tutta la selezione.")
+            riga("Name") { Text("\(s.nomeFile).\(s.estensione)").font(.system(size: 12, design: .monospaced)); Spacer() }
+            riga("Container") { Text(s.contenitoreVero.rawValue).font(.system(size: 12)); Spacer() }
+            Text(s.modo == .individuali ? "One file per timeline clip, with the clip name appended." : "A single file with the whole selection.")
                 .font(.system(size: 10)).foregroundStyle(Tema.testo2)
         }
     }
@@ -373,7 +373,7 @@ struct CodaRenderMonitor: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Coda di render").font(.system(size: 12, weight: .semibold))
+                Text("Render queue").font(.system(size: 12, weight: .semibold))
                 Spacer()
                 Text("\(studio.codaRender.count)").font(.system(size: 11, design: .monospaced)).foregroundStyle(Tema.testo2)
             }
@@ -382,8 +382,8 @@ struct CodaRenderMonitor: View {
             if studio.codaRender.isEmpty {
                 VStack(spacing: 6) {
                     Image(systemName: "tray").font(.system(size: 24)).foregroundStyle(Tema.testo2)
-                    Text("Nessun lavoro in coda").font(.system(size: 12)).foregroundStyle(Tema.testo2)
-                    Text("Scegli le impostazioni a sinistra e premi “Aggiungi alla coda di render”.")
+                    Text("No jobs in the queue").font(.system(size: 12)).foregroundStyle(Tema.testo2)
+                    Text("Choose the settings on the left and press “Add to render queue”.")
                         .font(.system(size: 10)).foregroundStyle(Tema.testo2).multilineTextAlignment(.center)
                 }
                 .padding(16).frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -404,7 +404,7 @@ struct CodaRenderMonitor: View {
                 }
                 .disabled(studio.renderInCorso)
                 Button { Task { await studio.renderTutto() } } label: {
-                    Text(studio.renderInCorso ? "Render in corso…" : "Render All").font(.system(size: 13, weight: .bold))
+                    Text(studio.renderInCorso ? "Rendering…" : "Render All").font(.system(size: 13, weight: .bold))
                         .frame(maxWidth: .infinity).frame(height: 32)
                         .background(RoundedRectangle(cornerRadius: 6).fill(studio.renderInCorso ? Tema.campo : Tema.accento))
                         .foregroundStyle(studio.renderInCorso ? Tema.testo2 : .black)
@@ -423,7 +423,7 @@ struct CodaRenderMonitor: View {
         let i = l.impostazioni
         return VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text("Lavoro \(l.numero)").font(.system(size: 11, weight: .bold))
+                Text("Job \(l.numero)").font(.system(size: 11, weight: .bold))
                 Text(l.nome).font(.system(size: 11)).foregroundStyle(Tema.testo2).lineLimit(1)
                 Spacer()
                 if case .inCorso = l.stato {} else {
@@ -432,18 +432,18 @@ struct CodaRenderMonitor: View {
                         .zonaMonitor("coda.togli.\(l.id)", clic: { _ in Studio.condiviso.togliDallaCoda(l.id) })
                 }
             }
-            Text("\(i.codec.rawValue) · \(i.risoluzione.misura.map { "\(Int($0.width))×\(Int($0.height))" } ?? "originale") · \(i.fps == 0 ? "fps originali" : "\(i.fps) fps")")
+            Text("\(i.codec.rawValue) · \(i.risoluzione.misura.map { "\(Int($0.width))×\(Int($0.height))" } ?? "original") · \(i.fps == 0 ? "original fps" : "\(i.fps) fps")")
                 .font(.system(size: 10)).foregroundStyle(Tema.testo2)
             Text("\(i.nomeFile).\(i.estensione) · \(VistaMonitor.timecode(l.durata))")
                 .font(.system(size: 10, design: .monospaced)).foregroundStyle(Tema.testo2)
             switch l.stato {
             case .attesa:
-                Text("In attesa").font(.system(size: 10, weight: .semibold)).foregroundStyle(Color(white: 0.75))
+                Text("Queued").font(.system(size: 10, weight: .semibold)).foregroundStyle(Color(white: 0.75))
             case .inCorso(let p):
                 ProgressView(value: p).tint(Tema.accento)
                 Text("\(Int(p * 100))%").font(.system(size: 10, design: .monospaced)).foregroundStyle(Tema.accento)
             case .fatto(let mb):
-                Label("Completato · \(ImpostazioniRenderMonitor.peso(mb)) salvato", systemImage: "checkmark.circle.fill")
+                Label("Completed · \(ImpostazioniRenderMonitor.peso(mb)) saved", systemImage: "checkmark.circle.fill")
                     .font(.system(size: 10, weight: .semibold)).foregroundStyle(Color(red: 0.4, green: 0.85, blue: 0.5))
             case .errore(let e):
                 Label(e, systemImage: "exclamationmark.triangle.fill").font(.system(size: 10)).foregroundStyle(Color(red: 1, green: 0.45, blue: 0.4))
@@ -476,7 +476,7 @@ struct BarraRenderMonitor: View {
                 }
             }
             Spacer()
-            Text("DURATA").font(.system(size: 10, weight: .semibold)).foregroundStyle(Tema.testo2)
+            Text("DURATION").font(.system(size: 10, weight: .semibold)).foregroundStyle(Tema.testo2)
             Text(VistaMonitor.timecode(studio.durataRender)).font(.system(size: 12, design: .monospaced))
         }
         .padding(.horizontal, 12).frame(height: 34)

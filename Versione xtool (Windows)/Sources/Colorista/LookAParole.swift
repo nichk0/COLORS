@@ -10,23 +10,23 @@ enum LookAParole {
 
     /// Se il modello si può usare su questo iPhone (nil) o perché no.
     static var motivoNonDisponibile: String? {
-        guard #available(iOS 26.0, *) else { return "Serve iOS 26 o più recente." }
+        guard #available(iOS 26.0, *) else { return "Requires iOS 26 or later." }
         switch SystemLanguageModel.default.availability {
         case .available: return nil
-        case .unavailable(.deviceNotEligible): return "Questo iPhone non supporta Apple Intelligence."
-        case .unavailable(.appleIntelligenceNotEnabled): return "Attiva Apple Intelligence in Impostazioni › Apple Intelligence e Siri."
-        case .unavailable(.modelNotReady): return "Il modello di Apple Intelligence si sta ancora scaricando: riprova tra poco."
-        default: return "Apple Intelligence non è disponibile in questo momento."
+        case .unavailable(.deviceNotEligible): return "This iPhone doesn't support Apple Intelligence."
+        case .unavailable(.appleIntelligenceNotEnabled): return "Turn on Apple Intelligence in Settings › Apple Intelligence & Siri."
+        case .unavailable(.modelNotReady): return "The Apple Intelligence model is still downloading: try again shortly."
+        default: return "Apple Intelligence is not available right now."
         }
     }
 
     static func nodo(per descrizione: String) async throws -> Nodo {
-        guard #available(iOS 26.0, *) else { throw Errore.nonDisponibile("Serve iOS 26 o più recente.") }
+        guard #available(iOS 26.0, *) else { throw Errore.nonDisponibile("Requires iOS 26 or later.") }
         if let m = motivoNonDisponibile { throw Errore.nonDisponibile(m) }
         let sessione = LanguageModelSession(instructions: """
-            Sei un colorista cinematografico esperto. Traduci la descrizione di un look nei valori di una correzione colore. \
-            Usa valori diversi da zero per ciò che il look richiede: un look caldo ha temperatura positiva, uno freddo negativa, \
-            uno vintage ha nero sollevato e grana, uno cupo ha esposizione e ombre negative. Rispondi in italiano.
+            You are an expert cinema colorist. Translate the description of a look into the values of a color correction. \
+            Use non-zero values for what the look needs: a warm look has positive temperature, a cool one negative, \
+            a vintage one has lifted blacks and grain, a gloomy one has negative exposure and shadows. Answer in English.
             """)
         let r = try await sessione.respond(to: "Look: \(descrizione)", generating: LookGenerato.self)
         return r.content.nodo
@@ -34,7 +34,7 @@ enum LookAParole {
 }
 
 @available(iOS 26.0, *)
-@Generable(description: "Colore verso cui spingere una zona dell'immagine")
+@Generable(description: "Color to push an area of the image towards")
 enum ColoreLook {
     case nessuno, rosso, arancio, giallo, verde, ciano, teal, blu, viola, magenta
 
@@ -58,37 +58,37 @@ enum ColoreLook {
 // Nota: i valori sono interi da -100 a 100. Con decimali e limiti "strani" (es. 0.6…1.6) il modello va in errore
 // (tokengeneration code 10); senza le spiegazioni e il campo "analisi" lascia tutto a 0.
 @available(iOS 26.0, *)
-@Generable(description: "Parametri di una correzione colore")
+@Generable(description: "Parameters of a color correction")
 struct LookGenerato {
-    @Guide(description: "Analisi del look in una frase: luce, colori di ombre e luci, contrasto, saturazione, epoca")
+    @Guide(description: "One-sentence analysis of the look: light, shadow and highlight colors, contrast, saturation, era")
     var analisi: String
-    @Guide(description: "Nome breve del look, 1-3 parole")
+    @Guide(description: "Short name of the look, 1-3 words")
     var nome: String
-    @Guide(description: "Luminosità generale. -100 molto scuro, 0 invariato, +100 molto chiaro. Notte o cupo: -30..-60", .range(-100...100))
+    @Guide(description: "Overall brightness. -100 very dark, 0 unchanged, +100 very bright. Night or gloomy: -30..-60", .range(-100...100))
     var esposizione: Int
-    @Guide(description: "Contrasto. -100 piatto/sbiadito, 0 invariato, +100 molto contrastato. Thriller/drammatico: +30..+60", .range(-100...100))
+    @Guide(description: "Contrast. -100 flat/faded, 0 unchanged, +100 very contrasty. Thriller/dramatic: +30..+60", .range(-100...100))
     var contrasto: Int
-    @Guide(description: "Saturazione. -100 bianco e nero, 0 invariata, +100 colori fortissimi. Vintage: -20..-40, pastello: -20", .range(-100...100))
+    @Guide(description: "Saturation. -100 black and white, 0 unchanged, +100 very strong colors. Vintage: -20..-40, pastel: -20", .range(-100...100))
     var saturazione: Int
-    @Guide(description: "Temperatura. -100 molto freddo/blu, 0 neutro, +100 molto caldo/arancio. Tramonto: +50..+80, freddo: -40..-70", .range(-100...100))
+    @Guide(description: "Temperature. -100 very cool/blue, 0 neutral, +100 very warm/orange. Sunset: +50..+80, cool: -40..-70", .range(-100...100))
     var temperatura: Int
-    @Guide(description: "Tinta. -100 verde, 0 neutro, +100 magenta", .range(-100...100))
+    @Guide(description: "Tint. -100 green, 0 neutral, +100 magenta", .range(-100...100))
     var tinta: Int
-    @Guide(description: "Ombre. -100 nere e profonde, 0 invariate, +100 molto aperte", .range(-100...100))
+    @Guide(description: "Shadows. -100 deep black, 0 unchanged, +100 very open", .range(-100...100))
     var ombre: Int
-    @Guide(description: "Alte luci. -100 scurite/recuperate, 0 invariate, +100 più brillanti", .range(-100...100))
+    @Guide(description: "Highlights. -100 darkened/recovered, 0 unchanged, +100 brighter", .range(-100...100))
     var luci: Int
-    @Guide(description: "Colore da dare alle ombre (split toning)")
+    @Guide(description: "Color to give the shadows (split toning)")
     var coloreOmbre: ColoreLook
-    @Guide(description: "Forza del colore nelle ombre. 0 nessuna, 30 leggera, 70 forte", .range(0...100))
+    @Guide(description: "Strength of the color in the shadows. 0 none, 30 light, 70 strong", .range(0...100))
     var intensitaOmbre: Int
-    @Guide(description: "Colore da dare alle alte luci (split toning)")
+    @Guide(description: "Color to give the highlights (split toning)")
     var coloreLuci: ColoreLook
-    @Guide(description: "Forza del colore nelle alte luci. 0 nessuna, 30 leggera, 70 forte", .range(0...100))
+    @Guide(description: "Strength of the color in the highlights. 0 none, 30 light, 70 strong", .range(0...100))
     var intensitaLuci: Int
-    @Guide(description: "Nero sollevato, effetto pellicola sbiadita. 0 nessuno, 40 vintage, 80 molto sbiadito", .range(0...100))
+    @Guide(description: "Lifted blacks, faded film effect. 0 none, 40 vintage, 80 very faded", .range(0...100))
     var neroSollevato: Int
-    @Guide(description: "Grana da pellicola. 0 nessuna, 30 leggera, 70 forte", .range(0...100))
+    @Guide(description: "Film grain. 0 none, 30 light, 70 strong", .range(0...100))
     var grana: Int
 
     /// Da -100…100 ai valori della correzione, con scale prudenti (il modello tende a esagerare).

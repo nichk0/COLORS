@@ -145,9 +145,9 @@ struct Grade: Codable, Hashable {
     var hdrNeroOffset: Float = 0                                  // B/Ofs: sposta il nero
 
     static let lumaRec709 = SIMD3<Float>(0.2126, 0.7152, 0.0722)
-    static let nomiZone = ["Nero", "Scuri", "Ombre", "Luce", "Alte luci", "Speculari"]
+    static let nomiZone = ["Black", "Dark", "Shadows", "Light", "Highlight", "Specular"]
     static let centriZone: [Float] = [0.03, 0.14, 0.3, 0.52, 0.76, 0.95]
-    static let nomiFette = ["Rosso", "Giallo", "Verde", "Ciano", "Blu", "Magenta"]
+    static let nomiFette = ["Red", "Yellow", "Green", "Cyan", "Blue", "Magenta"]
 
     init() {}
 
