@@ -1,0 +1,30 @@
+# Se il progetto Colorista.xcodeproj non si apre (Xcode più vecchio del 16):
+# 1. copia questo file nella cartella Colorista-Xcode (accanto alla cartella "Colorista")
+# 2. sul Mac: brew install xcodegen   poi   xcodegen generate
+name: Colorista
+options:
+  bundleIdPrefix: com.nicholas
+  deploymentTarget:
+    iOS: "18.0"
+targets:
+  Colorista:
+    type: application
+    platform: iOS
+    sources:
+      - path: Colorista
+        excludes:
+          - Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nicholas.Colorista
+        INFOPLIST_FILE: Colorista/Info.plist
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Colorista
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"

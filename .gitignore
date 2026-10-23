@@ -1,0 +1,14 @@
+# Xcode
+build/
+build-ipa/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.ipa
+
+# xtool
+.build/
+
+# macOS
+.DS_Store
+._*
