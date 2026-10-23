@@ -1,11 +1,38 @@
 # Colors
 
+![Colors on iPhone and on an external monitor](screenshots/cover.png)
+
 **Colors** is an iPhone app for **color grading and video editing**, inspired by the workflow of professional post-production software (Media, Edit, Color and Deliver pages). It can be used in two ways:
 
 - **Phone mode:** the whole app on the iPhone screen, with touch controls.
 - **Monitor / AirPlay mode:** connect the iPhone to a monitor (USB‑C/HDMI cable) or to a TV/Mac via AirPlay. The monitor shows a full "desktop-style" interface, while the phone becomes a **trackpad and keyboard**. A real mouse connected through a USB hub works too.
 
 Everything runs on the phone, offline, with no third-party libraries: Apple frameworks only (SwiftUI, Core Image, AVFoundation, Vision, Photos).
+
+---
+
+## Screenshots
+
+### On the iPhone
+
+| Edit | Color · nodes and primaries | Magic Mask (subject) |
+|:---:|:---:|:---:|
+| <img src="screenshots/edit.png" width="260" alt="Edit page with timeline and trim controls"> | <img src="screenshots/color-primaries.png" width="260" alt="Color page with node graph, RGB parade and Lift/Gamma/Gain wheels"> | <img src="screenshots/magic-mask-subject.png" width="260" alt="AI subject mask shown in black and white"> |
+| **HDR wheels on the background mask** | **Curves** | **Trackpad mode** |
+| <img src="screenshots/hdr-background-mask.png" width="260" alt="HDR zone wheels with the background mask"> | <img src="screenshots/curves.png" width="260" alt="Custom curves with the subject in black and white"> | <img src="screenshots/trackpad.png" width="260" alt="The phone used as trackpad for the external monitor"> |
+
+### On an external monitor (USB‑C/HDMI or AirPlay)
+
+**Edit** – Media Pool, viewer, Inspector and timeline with blade and trim tools
+![Edit page on the external monitor](screenshots/monitor-edit.png)
+
+**Color** – node graph and curves
+![Color page on the external monitor](screenshots/monitor-color.png)
+
+**Deliver** – render settings and render queue
+![Deliver page on the external monitor](screenshots/monitor-deliver.png)
+
+> The screenshots were taken with an earlier build whose interface was in Italian; the current release is in English. Sample photo: [Pexels](https://www.pexels.com/photo/woman-and-man-hugging-6973754/) (free license).
 
 ---
 
