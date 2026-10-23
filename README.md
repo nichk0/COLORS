@@ -1,103 +1,117 @@
 # Colors
 
-**Colors** è un'app per iPhone di **color grading e montaggio video**, ispirata al flusso di lavoro dei programmi professionali (pagine Media, Edit, Color, Deliver). Si usa in due modi:
+**Colors** is an iPhone app for **color grading and video editing**, inspired by the workflow of professional post-production software (Media, Edit, Color and Deliver pages). It can be used in two ways:
 
-- **Modalità telefono:** tutta l'app sullo schermo dell'iPhone, con i comandi touch.
-- **Modalità monitor / AirPlay:** colleghi l'iPhone a un monitor (cavo USB‑C/HDMI) o a una TV/Mac con AirPlay. Sul monitor compare un'interfaccia completa "da computer", mentre il telefono diventa **trackpad e tastiera**. Funziona anche con un mouse vero collegato a un hub USB.
+- **Phone mode:** the whole app on the iPhone screen, with touch controls.
+- **Monitor / AirPlay mode:** connect the iPhone to a monitor (USB‑C/HDMI cable) or to a TV/Mac via AirPlay. The monitor shows a full "desktop-style" interface, while the phone becomes a **trackpad and keyboard**. A real mouse connected through a USB hub works too.
 
-Tutto funziona sul telefono, senza internet e senza librerie esterne: solo framework Apple (SwiftUI, Core Image, AVFoundation, Vision, Photos).
-
----
-
-## Cosa può fare
-
-### Pagina Media
-- Importa foto e video dalla **Libreria Foto**.
-- Importa dai **File**, da cartelle e da **chiavette USB** collegate (cartelle collegate con accesso permanente).
-- Riconosce il **codec** di ogni file (H.264, HEVC, ProRes…) e avvisa se un formato non è supportato (es. Blackmagic RAW).
-- **Media Pool**: i media importati restano nel progetto, pronti da trascinare nella timeline.
-- **Progetti**: crea, apri, rinomina ed elimina progetti.
-
-### Pagina Edit (montaggio)
-- **Timeline** con clip video, foto e traccia musica, con forma d'onda dell'audio.
-- **Lama** per tagliare le clip nel punto esatto (con linea di taglio sotto il puntatore), a qualsiasi zoom.
-- **Rifilo** trascinando l'inizio o la fine della clip (resta uno spazio vuoto, come nei programmi professionali), **Rifila alla testina**, chiusura degli spazi.
-- Trascinamento dei media dal Media Pool alla timeline.
-- **Musica**: aggiungi brani da Musica/File/cartelle, taglio, volume e dissolvenze.
-- **Inspector**: velocità, volume, inquadratura (zoom, posizione, rotazione, specchio), transizioni, titoli.
-- Stabilizzazione (anche modalità "treppiede"), reframe automatico sul soggetto, sottotitoli automatici dal parlato, divisione automatica per cambi di scena.
-
-### Pagina Color
-- **Nodi** in serie con anteprima, attivazione/disattivazione, nome.
-- **Primarie**: ruote Lift / Gamma / Gain / Offset (o barre), Temperatura, Tint, Contrasto, Pivot, Mid/Detail, Esposizione, Color Boost, Ombre, Luci, Saturazione, Hue, Lum Mix, bilanciamento automatico e **contagocce** per il punto di bianco.
-- **HDR**: ruote per zone (Black, Dark, Shadow, Light, Highlight, Specular) con esposizione, saturazione e ampiezza, più i controlli globali.
-- **Curve** (Y/R/G/B, Hue vs Hue, Hue vs Sat, Hue vs Lum, Lum vs Sat, Sat vs Sat, Sat vs Lum).
-- **Warper** a griglia sul vettorscopio, con i colori presi dal video.
-- **Qualificatore** (HSL), **Finestre/maschere** (cerchio, lineare…) spostabili direttamente sul video, con **tracker**.
-- **Mixer RGB**, **Effetti** (nitidezza, grana, glow, halation, riduzione rumore, sfocatura), **Color Space Transform** (camere Log → Rec.709), **LUT .cube** e **CDL**.
-- **Galleria** di still per confronto.
-- **Scope**: Parade, Waveform, Vettorscopio, Istogramma, CIE 1931.
-- **Keyframe** per animare la correzione.
-- Funzioni "AI" sul telefono: auto colore, look descritto a parole (Apple Intelligence).
-- Annulla / Ripeti.
-
-### Pagina Deliver (esportazione)
-- Preset di esportazione (anche per i social), risoluzione, formato, ProRes 422 HQ 10 bit o H.264/HEVC.
-- **Coda di render**: aggiungi più lavori e avviali insieme.
-- Salvataggio nel **Rullino** o in una **cartella collegata / chiavetta USB**.
+Everything runs on the phone, offline, with no third-party libraries: Apple frameworks only (SwiftUI, Core Image, AVFoundation, Vision, Photos).
 
 ---
 
-## Modalità monitor / AirPlay
+## Download
 
-Quando l'iPhone è collegato a un monitor o in AirPlay:
+Grab the latest **`Colors.ipa`** from the [**Releases**](../../releases/latest) page.
+
+The IPA is **unsigned**, so you need to sign it with your own Apple ID when installing. Use a sideloading tool such as [Sideloadly](https://sideloadly.io), [AltStore](https://altstore.io) or [iloader](https://github.com/nab138/iloader):
+
+1. Download `Colors.ipa` from Releases.
+2. Open it in your sideloading tool, sign in with your Apple ID and install it on your iPhone.
+3. On the iPhone: *Settings › General › VPN & Device Management* → trust your account, and enable *Developer Mode* (*Settings › Privacy & Security*).
+
+With a free Apple ID the app must be re-signed every 7 days.
+
+---
+
+## Features
+
+### Media page
+- Import photos and videos from the **Photo Library**.
+- Import from **Files**, from folders and from connected **USB drives** (linked folders with persistent access).
+- Detects the **codec** of each file (H.264, HEVC, ProRes…) and warns when a format is not supported (e.g. Blackmagic RAW).
+- **Media Pool**: imported media stay in the project, ready to be dragged onto the timeline.
+- **Projects**: create, open, rename and delete projects.
+
+### Edit page
+- **Timeline** with video clips, photos and a music track, with audio waveform.
+- **Blade** tool to cut clips at the exact point (with a cut line under the pointer), at any zoom level.
+- **Trim** by dragging the start or end of a clip (leaving a gap, as in professional editors), **Trim to playhead**, close gaps.
+- Drag media from the Media Pool onto the timeline.
+- **Music**: add tracks from Music/Files/folders, cut, volume and fades.
+- **Inspector**: speed, volume, framing (zoom, position, rotation, flip), transitions, titles.
+- Stabilization (including "tripod" mode), automatic subject reframing, automatic captions from speech, automatic split on scene changes.
+
+### Color page
+- Serial **nodes** with preview, enable/disable and naming.
+- **Primaries**: Lift / Gamma / Gain / Offset wheels (or bars), Temperature, Tint, Contrast, Pivot, Mid/Detail, Exposure, Color Boost, Shadows, Highlights, Saturation, Hue, Lum Mix, auto balance and a white-point **eyedropper**.
+- **HDR**: zone wheels (Black, Dark, Shadow, Light, Highlight, Specular) with exposure, saturation and falloff, plus global controls.
+- **Curves** (Y/R/G/B, Hue vs Hue, Hue vs Sat, Hue vs Lum, Lum vs Sat, Sat vs Sat, Sat vs Lum).
+- Grid **Warper** on the vectorscope, using the colors from the video.
+- **Qualifier** (HSL), **Windows/masks** (circle, linear…) movable directly on the video, with **tracker**.
+- **RGB Mixer**, **Effects** (sharpening, grain, glow, halation, noise reduction, blur), **Color Space Transform** (Log cameras → Rec.709), **.cube LUTs** and **CDL**.
+- Stills **Gallery** for comparison.
+- **Scopes**: Parade, Waveform, Vectorscope, Histogram, CIE 1931.
+- **Keyframes** to animate the grade.
+- On-device "AI" features: auto color, looks described in words (Apple Intelligence).
+- Undo / Redo.
+
+### Deliver page
+- Export presets (including social media), resolution, format, ProRes 422 HQ 10-bit or H.264/HEVC.
+- **Render queue**: add several jobs and start them together.
+- Save to the **Camera Roll** or to a **linked folder / USB drive**.
+
+---
+
+## Monitor / AirPlay mode
+
+When the iPhone is connected to a monitor or via AirPlay:
 
 | Monitor | iPhone |
 |---|---|
-| Interfaccia completa con barra dei menu (File, Modifica, Clip, Nodi, Vista, Riproduzione, Area di lavoro), pannelli, viewer, timeline, scope | Trackpad a tutto schermo + tastiera |
+| Full interface with menu bar (File, Edit, Clip, Nodes, View, Playback, Workspace), panels, viewer, timeline, scopes | Full-screen trackpad + keyboard |
 
-- **Puntatore** sul monitor mosso dal trackpad del telefono o da un **mouse** collegato (tasto sinistro, destro e rotellina).
-- **Tasto destro** apre i menu contestuali (nodi, clip, progetti…), la **rotellina** scorre liste e timeline.
-- Le finestre di sistema (scelta dei file e delle cartelle) e le finestre di testo (es. rinomina) compaiono **sul monitor**.
-- Video a **schermo intero** sul monitor.
-- Se non c'è una tastiera fisica, si usa quella del telefono; con una tastiera collegata si scrive direttamente.
-- All'avvio con il monitor collegato appare la finestra **Continua progetto / Nuovo progetto**.
+- The **pointer** on the monitor is moved by the phone's trackpad or by a connected **mouse** (left/right button and scroll wheel).
+- **Right click** opens context menus (nodes, clips, projects…), the **scroll wheel** scrolls lists and the timeline.
+- System dialogs (file and folder pickers) and text dialogs (e.g. rename) appear **on the monitor**.
+- **Full-screen** video on the monitor.
+- Without a physical keyboard the phone's keyboard is used; with a connected keyboard you type directly.
+- When launched with a monitor connected, a **Continue project / New project** window appears.
 
-> Nota tecnica: per avere una vera seconda schermata (e non il semplice mirroring) l'app usa una scena "companion" per display esterno di UIKit (iOS 26+). Il mouse con il tasto sinistro richiede AssistiveTouch attivo.
+> Technical note: to get a real second screen (not just mirroring) the app uses a UIKit external display "companion" scene (iOS 26+). Using a mouse with left click requires AssistiveTouch to be enabled.
 
 ---
 
-## Requisiti
+## Requirements
 
-- iPhone con **iOS 18** o più recente (la modalità monitor separata richiede iOS 26).
-- Per compilare: Mac con **Xcode 16** o più recente e un Apple ID (anche gratuito).
+- iPhone with **iOS 18** or later (the separate monitor mode requires iOS 26).
+- To build: a Mac with **Xcode 16** or later and an Apple ID (a free one works).
 
-## Come compilare
+## Building
 
-1. Apri `Colorista.xcodeproj` con Xcode.
-2. Target **Colorista** → *Signing & Capabilities*: spunta *Automatically manage signing* e scegli il tuo Team.
-   Se il Bundle Identifier è già in uso, cambialo (es. `com.tuonome.Colors`).
-3. Collega l'iPhone, sceglilo come destinazione e premi **Play** (⌘R).
-4. Sull'iPhone: *Impostazioni › Generali › VPN e gestione dispositivi* → autorizza il tuo account, e attiva la *Modalità sviluppatore*.
+1. Open `Colorista.xcodeproj` in Xcode.
+2. **Colorista** target → *Signing & Capabilities*: check *Automatically manage signing* and pick your Team.
+   If the Bundle Identifier is already taken, change it (e.g. `com.yourname.Colors`).
+3. Connect your iPhone, select it as the destination and press **Run** (⌘R).
+4. On the iPhone: *Settings › General › VPN & Device Management* → trust your account, and enable *Developer Mode*.
 
-Altre cartelle:
-- `Alternativa XcodeGen/` — `project.yml` per rigenerare il progetto con XcodeGen.
-- `Versione xtool (Windows)/` — lo stesso codice nel formato per compilare da Windows/Linux con [xtool](https://github.com/xtool-org/xtool).
+Other folders:
+- `Alternativa XcodeGen/` — `project.yml` to regenerate the project with XcodeGen.
+- `Versione xtool (Windows)/` — the same code in the layout needed to build from Windows/Linux with [xtool](https://github.com/xtool-org/xtool).
 
-## Struttura del codice
+## Code structure
 
-| File | Contenuto |
+| File | Contents |
 |---|---|
-| `ColoristaApp.swift`, `ContentView.swift`, `Pagine.swift` | App e pagine sul telefono |
-| `Studio.swift`, `Progetto.swift`, `Sequenza.swift` | Stato dell'app, progetti, timeline e riproduzione |
-| `Grade.swift`, `ColorScience.swift`, `Nodi.swift`, `GrafoNodi.swift` | Motore di correzione colore e nodi |
-| `Palette.swift`, `ColorWheel.swift`, `CurveEditor.swift`, `TipoCurva.swift` | Palette della pagina Color |
-| `SchermoEsterno.swift`, `Trackpad.swift` | Interfaccia sul monitor, trackpad, mouse e tastiera |
-| `Cartelle.swift` | Cartelle collegate, chiavette USB, riconoscimento codec |
-| `Render.swift`, `Esportazione.swift`, `FormatoSocial.swift`, `Inspector.swift` | Esportazione, coda di render, Inspector |
-| `Scope.swift`, `Tracker.swift`, `Stabilizzatore.swift`, `Reframe.swift`, `Sottotitoli.swift`, `CambiScena.swift` | Scope e analisi video |
-| `CubeLUT.swift`, `CDL.swift`, `AI.swift`, `LookAParole.swift`, `PannelloAI.swift` | LUT, CDL e funzioni intelligenti |
+| `ColoristaApp.swift`, `ContentView.swift`, `Pagine.swift` | App and pages on the phone |
+| `Studio.swift`, `Progetto.swift`, `Sequenza.swift` | App state, projects, timeline and playback |
+| `Grade.swift`, `ColorScience.swift`, `Nodi.swift`, `GrafoNodi.swift` | Color correction engine and nodes |
+| `Palette.swift`, `ColorWheel.swift`, `CurveEditor.swift`, `TipoCurva.swift` | Color page palettes |
+| `SchermoEsterno.swift`, `Trackpad.swift` | Monitor interface, trackpad, mouse and keyboard |
+| `Cartelle.swift` | Linked folders, USB drives, codec detection |
+| `Render.swift`, `Esportazione.swift`, `FormatoSocial.swift`, `Inspector.swift` | Export, render queue, Inspector |
+| `Scope.swift`, `Tracker.swift`, `Stabilizzatore.swift`, `Reframe.swift`, `Sottotitoli.swift`, `CambiScena.swift` | Scopes and video analysis |
+| `CubeLUT.swift`, `CDL.swift`, `AI.swift`, `LookAParole.swift`, `PannelloAI.swift` | LUTs, CDL and smart features |
 
-## Note
+## Notes
 
-Colors è un progetto indipendente. L'interfaccia si ispira all'organizzazione dei programmi di color grading professionali, ma tutto il codice è scritto da zero. DaVinci Resolve è un marchio di Blackmagic Design; questo progetto non è affiliato né approvato da Blackmagic Design.
+Colors is an independent project. Its interface is inspired by the layout of professional color grading software, but all the code is written from scratch. DaVinci Resolve is a trademark of Blackmagic Design; this project is not affiliated with or endorsed by Blackmagic Design.
