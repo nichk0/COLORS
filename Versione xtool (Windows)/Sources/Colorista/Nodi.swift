@@ -26,17 +26,17 @@ extension PuntoTraccia {
 }
 
 enum MagicMask: String, Codable, CaseIterable, Identifiable {
-    case nessuna = "Nessuna", persona = "Persona", sfondo = "Sfondo (tutto tranne la persona)"
-    case soggetto = "Soggetto (AI)", fuoriSoggetto = "Tutto tranne il soggetto (AI)"
+    case nessuna = "None", persona = "Person", sfondo = "Background (everything except the person)"
+    case soggetto = "Subject (AI)", fuoriSoggetto = "Everything except the subject (AI)"
     var id: String { rawValue }
     /// Nome corto per i selettori (il rawValue resta uguale per i progetti salvati).
     var nome: String {
         switch self {
-        case .nessuna: return "Nessuna"
-        case .persona: return "Persona"
-        case .sfondo: return "Sfondo"
-        case .soggetto: return "Soggetto"
-        case .fuoriSoggetto: return "Fuori sogg."
+        case .nessuna: return "None"
+        case .persona: return "Person"
+        case .sfondo: return "Background"
+        case .soggetto: return "Subject"
+        case .fuoriSoggetto: return "Outside subj."
         }
     }
     var invertita: Bool { self == .sfondo || self == .fuoriSoggetto }
@@ -59,7 +59,7 @@ struct Effetti: Codable, Hashable {
 /// Come si collega un nodo al precedente: in serie, in parallelo (stesso ingresso, uscite mescolate)
 /// o a layer (stesso ingresso, questo nodo sopra a quello sotto dove la sua maschera lo permette).
 enum ModoNodo: String, Codable, CaseIterable, Identifiable {
-    case serie = "Serie", parallelo = "Parallelo", layer = "Layer"
+    case serie = "Serial", parallelo = "Parallel", layer = "Layer"
     var id: String { rawValue }
     var icona: String {
         switch self {
@@ -72,7 +72,7 @@ enum ModoNodo: String, Codable, CaseIterable, Identifiable {
 
 /// Un nodo della catena, come in DaVinci: correttore, Color Space Transform o LUT.
 struct Nodo: Identifiable, Codable, Hashable {
-    enum Tipo: String, Codable { case correzione = "Correttore", cst = "CST", lut = "LUT" }
+    enum Tipo: String, Codable { case correzione = "Corrector", cst = "CST", lut = "LUT" }
 
     var id = UUID()
     var tipo: Tipo
@@ -122,8 +122,8 @@ struct Nodo: Identifiable, Codable, Hashable {
         case .correzione:
             if !nome.isEmpty { return nome }
             if magic != .nessuna { return "Magic Mask" }
-            if haMaschera { return "Secondaria" }
-            return effetti.attivi ? "Effetti" : "Correttore"
+            if haMaschera { return "Secondary" }
+            return effetti.attivi ? "Effects" : "Corrector"
         case .cst: return "CST"
         case .lut: return nomeLUT.isEmpty ? "LUT" : nomeLUT
         }

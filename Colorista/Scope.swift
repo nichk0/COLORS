@@ -1,7 +1,7 @@
 import UIKit
 
 enum TipoScope: String, CaseIterable, Identifiable {
-    case nessuno = "Nessuno", parade = "Parade", waveform = "Waveform", vettorscopio = "Vettorscopio", istogramma = "Istogramma", cie = "CIE 1931"
+    case nessuno = "None", parade = "Parade", waveform = "Waveform", vettorscopio = "Vectorscope", istogramma = "Histogram", cie = "CIE 1931"
     var id: String { rawValue }
 }
 

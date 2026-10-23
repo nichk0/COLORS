@@ -1,9 +1,9 @@
 import SwiftUI
 
 enum Palette: String, CaseIterable, Identifiable {
-    case primarie = "Primarie", ai = "AI", hdr = "HDR", curve = "Curve", warper = "Warper", mixer = "Mixer"
-    case qualificatore = "Qualificatore", finestre = "Finestre", effetti = "Effetti", regolazioni = "Regolazioni"
-    case cst = "CST", galleria = "Galleria", consegna = "Consegna"
+    case primarie = "Primaries", ai = "AI", hdr = "HDR", curve = "Curve", warper = "Warper", mixer = "Mixer"
+    case qualificatore = "Qualifier", finestre = "Windows", effetti = "Effects", regolazioni = "Adjustments"
+    case cst = "CST", galleria = "Gallery", consegna = "Deliver"
     var id: String { rawValue }
     /// Le palette nella fila: Consegna sta nella pagina Deliver.
     static var visibili: [Palette] { allCases.filter { $0 != .consegna } }
@@ -81,10 +81,10 @@ struct PannelloPrimarie: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            TestataPalette(titolo: "Primarie", modificata: studio.nodo.grade.primarieModificate) { studio.nodo.grade.azzeraPrimarie() }
+            TestataPalette(titolo: "Primaries", modificata: studio.nodo.grade.primarieModificate) { studio.nodo.grade.azzeraPrimarie() }
             HStack {
                 Picker("", selection: $log) {
-                    Text("Primarie").tag(false)
+                    Text("Primaries").tag(false)
                     Text("Log").tag(true)
                 }
                 .pickerStyle(.segmented)
@@ -94,28 +94,28 @@ struct PannelloPrimarie: View {
                         .background(RoundedRectangle(cornerRadius: 5).fill(Tema.campo))
                 }
                 .buttonStyle(StilePulsante())
-                .accessibilityLabel("Bilanciamento automatico")
+                .accessibilityLabel("Auto balance")
                 Button {
                     studio.contagocce = studio.contagocce == .bianco ? .nessuno : .bianco
                 } label: {
                     Image(systemName: "eyedropper").frame(width: 26, height: 26)
                         .foregroundStyle(studio.contagocce == .bianco ? Tema.accento : .white)
                 }
-                .accessibilityLabel("Contagocce del bianco")
+                .accessibilityLabel("White eyedropper")
             }
             if studio.contagocce == .bianco {
-                Text("Tocca nell'immagine un punto che deve essere bianco o grigio neutro.")
+                Text("Tap a point in the image that should be white or neutral gray.")
                     .font(.caption2).foregroundStyle(Tema.accento)
             }
             if log {
                 FilaRuote(voci: [
-                    .init(id: "Ombre", wheel: $studio.nodo.grade.logOmbre, scala: 0.12),
-                    .init(id: "Medi", wheel: $studio.nodo.grade.logMedi, scala: 0.12),
-                    .init(id: "Luci", wheel: $studio.nodo.grade.logLuci, scala: 0.12),
+                    .init(id: "Shadows", wheel: $studio.nodo.grade.logOmbre, scala: 0.12),
+                    .init(id: "Midtones", wheel: $studio.nodo.grade.logMedi, scala: 0.12),
+                    .init(id: "Highlights", wheel: $studio.nodo.grade.logLuci, scala: 0.12),
                 ])
                 HStack(spacing: 12) {
-                    Regolazione(nome: "Range basso", valore: $studio.nodo.grade.logBasso, intervallo: 0.05...0.6, base: 0.3)
-                    Regolazione(nome: "Range alto", valore: $studio.nodo.grade.logAlto, intervallo: 0.4...0.95, base: 0.7)
+                    Regolazione(nome: "Low range", valore: $studio.nodo.grade.logBasso, intervallo: 0.05...0.6, base: 0.3)
+                    Regolazione(nome: "High range", valore: $studio.nodo.grade.logAlto, intervallo: 0.4...0.95, base: 0.7)
                 }
             } else {
                 FilaRuote(voci: [
@@ -126,12 +126,12 @@ struct PannelloPrimarie: View {
                 ])
             }
             HStack(spacing: 12) {
-                Regolazione(nome: "Contrasto", valore: $studio.nodo.grade.contrasto, intervallo: 0...2, base: 1)
+                Regolazione(nome: "Contrast", valore: $studio.nodo.grade.contrasto, intervallo: 0...2, base: 1)
                 Regolazione(nome: "Pivot", valore: $studio.nodo.grade.pivot, intervallo: 0...1, base: 0.435, formato: "%.3f")
             }
             HStack(spacing: 12) {
-                Regolazione(nome: "Saturazione", valore: $studio.nodo.grade.saturazione, intervallo: 0...2, base: 1)
-                Regolazione(nome: "Temperatura", valore: $studio.nodo.grade.temperatura, intervallo: -1...1, base: 0)
+                Regolazione(nome: "Saturation", valore: $studio.nodo.grade.saturazione, intervallo: 0...2, base: 1)
+                Regolazione(nome: "Temperature", valore: $studio.nodo.grade.temperatura, intervallo: -1...1, base: 0)
             }
             HStack(spacing: 12) {
                 Regolazione(nome: "Mid/Detail", valore: $studio.nodo.effetti.dettaglio, intervallo: -1...1, base: 0)
@@ -139,7 +139,7 @@ struct PannelloPrimarie: View {
                 Regolazione(nome: "Lum Mix", valore: $studio.nodo.grade.lumMix, intervallo: 0...1, base: 1)
             }
             if studio.nodo.grade.nero != .zero || studio.nodo.grade.bilanciamento != SIMD3(1, 1, 1) {
-                Button("Azzera bilanciamento automatico / contagocce") {
+                Button("Reset auto balance / eyedropper") {
                     studio.nodo.grade.nero = .zero; studio.nodo.grade.bilanciamento = SIMD3(1, 1, 1)
                 }
                 .font(.caption)
@@ -205,7 +205,7 @@ struct FilaRuote: View {
             .scrollPosition(id: $scelta, anchor: .leading)
             .scrollDisabled(!scorre)
             if scorre {
-                Text(selezionata == nil ? "Doppio tocco su una ruota per regolarla." : "Doppio tocco di nuovo sulla ruota per lasciarla.")
+                Text(selezionata == nil ? "Double-tap a wheel to adjust it." : "Double-tap the wheel again to release it.")
                     .font(.caption2).foregroundStyle(Tema.testo2)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -220,20 +220,20 @@ struct PannelloHDR: View {
     @ObservedObject var studio: Studio
     var body: some View {
         VStack(spacing: 8) {
-            TestataPalette(titolo: "Ruote HDR", modificata: studio.nodo.grade.hdrModificato) { studio.nodo.grade.azzeraHDR() }
+            TestataPalette(titolo: "HDR wheels", modificata: studio.nodo.grade.hdrModificato) { studio.nodo.grade.azzeraHDR() }
             FilaRuote(voci: (0..<6).map { .init(id: Grade.nomiZone[$0], wheel: $studio.nodo.grade.zone[$0], scala: 0.5) }
-                + [.init(id: "Globale", wheel: $studio.nodo.grade.hdrGlobale, scala: 0.5)])
+                + [.init(id: "Global", wheel: $studio.nodo.grade.hdrGlobale, scala: 0.5)])
             HStack(spacing: 12) {
                 Regolazione(nome: "Temp", valore: $studio.nodo.grade.hdrTemp, intervallo: -1...1, base: 0)
                 Regolazione(nome: "Tint", valore: $studio.nodo.grade.hdrTint, intervallo: -1...1, base: 0)
                 Regolazione(nome: "Hue", valore: $studio.nodo.grade.hdrHue, intervallo: -180...180, base: 0, formato: "%.0f°")
             }
             HStack(spacing: 12) {
-                Regolazione(nome: "Contrasto", valore: $studio.nodo.grade.hdrContrasto, intervallo: 0...2, base: 1, formato: "%.3f")
+                Regolazione(nome: "Contrast", valore: $studio.nodo.grade.hdrContrasto, intervallo: 0...2, base: 1, formato: "%.3f")
                 Regolazione(nome: "Pivot", valore: $studio.nodo.grade.hdrPivot, intervallo: 0...1, base: 0.435, formato: "%.3f")
                 Regolazione(nome: "B/Ofs", valore: $studio.nodo.grade.hdrNeroOffset, intervallo: -1...1, base: 0, formato: "%.3f")
             }
-            Text("Ogni ruota lavora su una fascia di luminanza: il cursore sotto è l'esposizione in stop, il puntino il colore. Le fasce si sovrappongono morbidamente, come le zone HDR di DaVinci.")
+            Text("Each wheel works on a luminance band: the slider below is the exposure in stops, the dot is the color. The bands overlap smoothly, like DaVinci's HDR zones.")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         }
     }
@@ -317,12 +317,12 @@ struct PannelloCurve: View {
                             .foregroundStyle(studio.contagocce == .curva ? Tema.accento : .white)
                     }
                     .buttonStyle(StilePulsante())
-                    .accessibilityLabel("Contagocce: scegli il colore dall'immagine")
+                    .accessibilityLabel("Eyedropper: pick the color from the image")
                 }
                 Button {
                     curva.wrappedValue = tipo == .custom ? .diagonale : .piatta
                 } label: {
-                    Label("Azzera", systemImage: "arrow.counterclockwise")
+                    Label("Reset", systemImage: "arrow.counterclockwise")
                         .font(.caption.weight(.semibold))
                         .padding(.horizontal, 10).frame(height: 28)
                         .background(RoundedRectangle(cornerRadius: 6).fill(modificata ? Tema.accento.opacity(0.25) : Tema.campo))
@@ -332,7 +332,7 @@ struct PannelloCurve: View {
                 .disabled(!modificata)
             }
             if studio.contagocce == .curva {
-                Text("Tocca nell'immagine il colore da cambiare: nascono tre punti, poi trascina quello centrale.")
+                Text("Tap the color to change in the image: three points appear, then drag the middle one.")
                     .font(.caption2).foregroundStyle(Tema.accento).frame(maxWidth: .infinity, alignment: .leading)
             }
             // Custom: canali Y R G B
@@ -365,26 +365,26 @@ struct PannelloCurve: View {
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(StilePulsante())
-                        .accessibilityLabel(["Rossi", "Gialli", "Verdi", "Ciano", "Blu", "Magenta"][k])
+                        .accessibilityLabel(["Reds", "Yellows", "Greens", "Cyan", "Blue", "Magenta"][k])
                     }
                 }
             }
             if tipo == .custom {
                 let k = [\SIMD4<Float>.x, \SIMD4<Float>.y, \SIMD4<Float>.z, \SIMD4<Float>.w][canale]
-                Regolazione(nome: "Intensità \(["Y", "R", "G", "B"][canale])",
+                Regolazione(nome: "Intensity \(["Y", "R", "G", "B"][canale])",
                             valore: Binding(get: { studio.nodo.grade.intensitaCurve[keyPath: k] }, set: { studio.nodo.grade.intensitaCurve[keyPath: k] = $0 }),
                             intervallo: 0...1, base: 1, formato: "%.2f")
                 DisclosureGroup(isExpanded: $softClip) {
                     VStack(spacing: 6) {
                         HStack(spacing: 12) {
-                            Regolazione(nome: "Basso", valore: $studio.nodo.grade.clipBasso, intervallo: 0...0.3, base: 0, formato: "%.2f")
-                            Regolazione(nome: "Morbido basso", valore: $studio.nodo.grade.morbidoBasso, intervallo: 0...1, base: 0, formato: "%.2f")
+                            Regolazione(nome: "Low", valore: $studio.nodo.grade.clipBasso, intervallo: 0...0.3, base: 0, formato: "%.2f")
+                            Regolazione(nome: "Low soft", valore: $studio.nodo.grade.morbidoBasso, intervallo: 0...1, base: 0, formato: "%.2f")
                         }
                         HStack(spacing: 12) {
-                            Regolazione(nome: "Alto", valore: $studio.nodo.grade.clipAlto, intervallo: 0.7...1, base: 1, formato: "%.2f")
-                            Regolazione(nome: "Morbido alto", valore: $studio.nodo.grade.morbidoAlto, intervallo: 0...1, base: 0, formato: "%.2f")
+                            Regolazione(nome: "High", valore: $studio.nodo.grade.clipAlto, intervallo: 0.7...1, base: 1, formato: "%.2f")
+                            Regolazione(nome: "High soft", valore: $studio.nodo.grade.morbidoAlto, intervallo: 0...1, base: 0, formato: "%.2f")
                         }
-                        Text("Morbido alto recupera le luci bruciate con un passaggio dolce; Morbido basso fa lo stesso con i neri chiusi.")
+                        Text("High soft recovers blown highlights with a gentle roll-off; Low soft does the same with crushed blacks.")
                             .font(.caption2).foregroundStyle(Tema.testo2).frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .padding(.top, 6)
@@ -522,7 +522,7 @@ struct PannelloWarper: View {
     /// Pannello "Tools" di DaVinci, in piccolo: tinte, valori del punto scelto, ripristini.
     private var strumenti: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Strumenti").font(.system(size: 12, weight: .semibold))
+            Text("Tools").font(.system(size: 12, weight: .semibold))
             Text("Range").font(.system(size: 11)).foregroundStyle(Tema.testo2)
             LinearGradient(colors: (0...12).map { Color(hue: Double($0) / 12, saturation: 0.85, brightness: 0.9) }, startPoint: .leading, endPoint: .trailing)
                 .frame(height: 12).clipShape(RoundedRectangle(cornerRadius: 3))
@@ -532,18 +532,18 @@ struct PannelloWarper: View {
             }
             HStack(spacing: 8) {
                 Button { if let i = scelto { studio.nodo.grade.warper[i] = .zero } } label: {
-                    Label("Azzera punto", systemImage: "arrow.uturn.backward").font(.system(size: 11, weight: .semibold))
+                    Label("Reset point", systemImage: "arrow.uturn.backward").font(.system(size: 11, weight: .semibold))
                         .padding(.horizontal, 8).frame(height: 26).background(RoundedRectangle(cornerRadius: 5).fill(Tema.campo))
                 }
                 .buttonStyle(StilePulsante())
                 .disabled(scelto == nil)
                 Button { studio.nodo.grade.warper = Array(repeating: .zero, count: Grade.warperTinte * Grade.warperAnelli); scelto = nil } label: {
-                    Label("Azzera tutto", systemImage: "arrow.counterclockwise").font(.system(size: 11, weight: .semibold))
+                    Label("Reset all", systemImage: "arrow.counterclockwise").font(.system(size: 11, weight: .semibold))
                         .padding(.horizontal, 8).frame(height: 26).background(RoundedRectangle(cornerRadius: 5).fill(Tema.campo))
                 }
                 .buttonStyle(StilePulsante())
             }
-            Text("Trascina un punto: girando cambia la tinta, verso il bordo la saturazione. I puntini chiari sotto sono i colori del video.")
+            Text("Drag a point: around the circle changes hue, towards the edge saturation. The light dots underneath are the colors of the video.")
                 .font(.system(size: 10)).foregroundStyle(Tema.testo2)
         }
         .foregroundStyle(Color(white: 0.9))
@@ -598,7 +598,7 @@ struct PannelloMixer: View {
         VStack(spacing: 6) {
             ForEach(0..<3, id: \.self) { r in
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Uscita \(["Rosso", "Verde", "Blu"][r])").font(.caption.weight(.semibold))
+                    Text("Output \(["Red", "Green", "Blue"][r])").font(.caption.weight(.semibold))
                         .foregroundStyle([Color.red, .green, .blue][r])
                     HStack(spacing: 10) {
                         ForEach(0..<3, id: \.self) { k in
@@ -608,19 +608,19 @@ struct PannelloMixer: View {
                 }
             }
             HStack {
-                Toggle("Mantieni luminanza", isOn: $studio.nodo.grade.mixerPreservaLuma)
-                Toggle("Bianco e nero", isOn: $studio.nodo.grade.mixerMono)
+                Toggle("Preserve luminance", isOn: $studio.nodo.grade.mixerPreservaLuma)
+                Toggle("Black and white", isOn: $studio.nodo.grade.mixerMono)
             }
             .font(.caption).tint(Tema.accento)
             HStack {
-                Button("B/N classico") {
+                Button("Classic B&W") {
                     studio.nodo.grade.mixer = [0.3, 0.59, 0.11, 0, 1, 0, 0, 0, 1]; studio.nodo.grade.mixerMono = true
                 }
-                Button("B/N filtro rosso") {
+                Button("B&W red filter") {
                     studio.nodo.grade.mixer = [0.9, 0.2, -0.1, 0, 1, 0, 0, 0, 1]; studio.nodo.grade.mixerMono = true
                 }
                 Spacer()
-                Button("Azzera") {
+                Button("Reset") {
                     studio.nodo.grade.mixer = [1, 0, 0, 0, 1, 0, 0, 0, 1]; studio.nodo.grade.mixerMono = false; studio.nodo.grade.mixerPreservaLuma = false
                 }
             }
@@ -636,14 +636,14 @@ struct PannelloMixer: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Text(Grade.nomiFette[i]).font(.caption.weight(.semibold))
                         HStack(spacing: 8) {
-                            Regolazione(nome: "Tinta", valore: $studio.nodo.grade.fette[i].tinta, intervallo: -1...1, base: 0)
+                            Regolazione(nome: "Hue", valore: $studio.nodo.grade.fette[i].tinta, intervallo: -1...1, base: 0)
                             Regolazione(nome: "Sat", valore: $studio.nodo.grade.fette[i].saturazione, intervallo: -1...1, base: 0)
-                            Regolazione(nome: "Densità", valore: $studio.nodo.grade.fette[i].densita, intervallo: -1...1, base: 0)
+                            Regolazione(nome: "Density", valore: $studio.nodo.grade.fette[i].densita, intervallo: -1...1, base: 0)
                         }
                     }
                 }
             }
-            Text("Densità: i colori diventano più scuri e \"pieni\", come in pellicola. Tinta e Sat agiscono solo su quella fascia di colore.")
+            Text("Density: colors become darker and \"richer\", like film. Hue and Sat only affect that color band.")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         }
     }
@@ -656,41 +656,41 @@ struct PannelloQualificatore: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            TestataPalette(titolo: "Qualificatore e Magic Mask", modificata: studio.nodo.qualificatore != Qualificatore() || studio.nodo.magic != .nessuna || studio.nodo.sfocaturaMaschera != 0) { studio.nodo.qualificatore = Qualificatore(); studio.nodo.magic = .nessuna; studio.nodo.sfocaturaMaschera = 0 }
-            Sezione(titolo: "Magic Mask (selezione automatica)") {
+            TestataPalette(titolo: "Qualifier and Magic Mask", modificata: studio.nodo.qualificatore != Qualificatore() || studio.nodo.magic != .nessuna || studio.nodo.sfocaturaMaschera != 0) { studio.nodo.qualificatore = Qualificatore(); studio.nodo.magic = .nessuna; studio.nodo.sfocaturaMaschera = 0 }
+            Sezione(titolo: "Magic Mask (automatic selection)") {
                 Picker("Magic Mask", selection: $studio.nodo.magic) {
                     ForEach([MagicMask.nessuna, .persona, .sfondo]) { Text($0.nome).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .sceltaMonitor($studio.nodo.magic, [MagicMask.nessuna, .persona, .sfondo])
                 Picker("Magic Mask AI", selection: $studio.nodo.magic) {
-                    Text("Soggetto AI").tag(MagicMask.soggetto)
-                    Text("Tutto tranne il soggetto").tag(MagicMask.fuoriSoggetto)
+                    Text("AI subject").tag(MagicMask.soggetto)
+                    Text("Everything except the subject").tag(MagicMask.fuoriSoggetto)
                 }
                 .pickerStyle(.segmented)
                 .sceltaMonitor($studio.nodo.magic, [MagicMask.soggetto, .fuoriSoggetto])
-                Text("Persona: solo le persone. Soggetto AI: qualsiasi cosa in primo piano (animali, oggetti, auto…).")
+                Text("Person: people only. AI subject: anything in the foreground (animals, objects, cars…).")
                     .font(.caption2).foregroundStyle(Tema.testo2)
             }
             HStack {
-                Toggle("Qualificatore HSL", isOn: $studio.nodo.qualificatore.attivo).tint(Tema.accento)
+                Toggle("HSL qualifier", isOn: $studio.nodo.qualificatore.attivo).tint(Tema.accento)
                 Button {
                     studio.contagocce = studio.contagocce == .qualificatore ? .nessuno : .qualificatore
                 } label: {
-                    Label("Contagocce", systemImage: "eyedropper")
+                    Label("Eyedropper", systemImage: "eyedropper")
                         .foregroundStyle(studio.contagocce == .qualificatore ? Tema.accento : .white)
                 }
             }
             if studio.contagocce == .qualificatore {
-                Text("Tocca nell'immagine il colore da isolare (es. il cielo o la pelle).")
+                Text("Tap the color to isolate in the image (e.g. the sky or skin).")
                     .font(.caption2).foregroundStyle(Tema.accento)
             }
             VStack(spacing: 0) {
-                Regolazione(nome: "Tinta", valore: $studio.nodo.qualificatore.tinta, intervallo: 0...1, base: 0.08)
+                Regolazione(nome: "Hue", valore: $studio.nodo.qualificatore.tinta, intervallo: 0...1, base: 0.08)
                 LinearGradient(colors: (0...12).map { Color(hue: Double($0) / 12, saturation: 0.85, brightness: 0.9) }, startPoint: .leading, endPoint: .trailing)
                     .frame(height: 5).clipShape(Capsule())
             }
-            Regolazione(nome: "Ampiezza tinta", valore: $studio.nodo.qualificatore.larghezzaTinta, intervallo: 0.005...0.5, base: 0.06, formato: "%.3f")
+            Regolazione(nome: "Hue width", valore: $studio.nodo.qualificatore.larghezzaTinta, intervallo: 0.005...0.5, base: 0.06, formato: "%.3f")
             HStack(spacing: 12) {
                 Regolazione(nome: "Sat min", valore: $studio.nodo.qualificatore.satMin, intervallo: 0...1, base: 0.1)
                 Regolazione(nome: "Sat max", valore: $studio.nodo.qualificatore.satMax, intervallo: 0...1, base: 1)
@@ -700,16 +700,16 @@ struct PannelloQualificatore: View {
                 Regolazione(nome: "Lum max", valore: $studio.nodo.qualificatore.lumMax, intervallo: 0...1, base: 1)
             }
             HStack(spacing: 12) {
-                Regolazione(nome: "Morbidezza", valore: $studio.nodo.qualificatore.morbidezza, intervallo: 0.001...0.3, base: 0.05, formato: "%.3f")
-                Regolazione(nome: "Sfocatura maschera", valore: $studio.nodo.sfocaturaMaschera, intervallo: 0...1, base: 0)
+                Regolazione(nome: "Softness", valore: $studio.nodo.qualificatore.morbidezza, intervallo: 0.001...0.3, base: 0.05, formato: "%.3f")
+                Regolazione(nome: "Mask blur", valore: $studio.nodo.sfocaturaMaschera, intervallo: 0...1, base: 0)
             }
             HStack {
-                Toggle("Inverti", isOn: $studio.nodo.qualificatore.inverti)
-                Toggle("Mostra maschera", isOn: $studio.mostraMaschera)
+                Toggle("Invert", isOn: $studio.nodo.qualificatore.inverti)
+                Toggle("Show mask", isOn: $studio.mostraMaschera)
             }
             .tint(Tema.accento).font(.caption)
             SceltaVistaMaschera(studio: studio)
-            Text("Magic Mask, qualificatore e finestre si moltiplicano: la correzione del nodo vale solo dove sono tutti \"bianchi\".")
+            Text("Magic Mask, qualifier and windows multiply: the node's grade only applies where they are all \"white\".")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         }
     }
@@ -724,7 +724,7 @@ struct PannelloFinestre: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            TestataPalette(titolo: "Finestre e Magic Mask", modificata: modificata) {
+            TestataPalette(titolo: "Windows and Magic Mask", modificata: modificata) {
                 studio.nodo.finestra = Finestra(); studio.nodo.finestreExtra = []; studio.finestraScelta = 0
                 studio.nodo.magic = .nessuna
             }
@@ -746,7 +746,7 @@ struct PannelloFinestre: View {
                         }
                     }
                 }
-                Text("Soggetto: qualsiasi cosa in primo piano (persone, animali, oggetti). Persona: solo le persone. Con le finestre vale solo dove ci sono tutte e due.")
+                Text("Subject: anything in the foreground (people, animals, objects). Person: people only. With windows it only applies where both are.")
                     .font(.caption2).foregroundStyle(Tema.testo2)
             }
             // elenco delle finestre del nodo
@@ -769,7 +769,7 @@ struct PannelloFinestre: View {
                     }
                 }
                 Button { studio.aggiungiFinestra() } label: {
-                    Label(studio.nodo.haFinestre ? "Aggiungi" : "Aggiungi finestra", systemImage: "plus")
+                    Label(studio.nodo.haFinestre ? "Add" : "Add window", systemImage: "plus")
                         .font(.caption.weight(.semibold))
                         .padding(.horizontal, 10).frame(height: 30)
                         .background(RoundedRectangle(cornerRadius: 6).fill(Tema.campo))
@@ -780,9 +780,9 @@ struct PannelloFinestre: View {
             }
             if studio.nodo.haFinestre && studio.finestraCorrente.tipo != .nessuna {
                 HStack {
-                    Picker("Forma", selection: $studio.finestraCorrente.tipo) {
-                        Text("Cerchio").tag(Finestra.Tipo.cerchio)
-                        Text("Lineare").tag(Finestra.Tipo.lineare)
+                    Picker("Shape", selection: $studio.finestraCorrente.tipo) {
+                        Text("Circle").tag(Finestra.Tipo.cerchio)
+                        Text("Linear").tag(Finestra.Tipo.lineare)
                     }
                     .pickerStyle(.segmented)
                     .sceltaMonitor($studio.finestraCorrente.tipo, [Finestra.Tipo.cerchio, .lineare])
@@ -792,29 +792,29 @@ struct PannelloFinestre: View {
                             .foregroundStyle(.red)
                     }
                     .buttonStyle(StilePulsante())
-                    .accessibilityLabel("Togli questa finestra")
+                    .accessibilityLabel("Remove this window")
                 }
-                Text("Trascina sull'immagine per spostare la finestra \(studio.finestraScelta + 1).")
+                Text("Drag on the image to move window \(studio.finestraScelta + 1).")
                     .font(.caption2).foregroundStyle(Tema.accento)
                 if studio.finestraCorrente.tipo == .cerchio {
-                    Regolazione(nome: "Dimensione", valore: $studio.finestraCorrente.raggio, intervallo: 0.02...1, base: 0.25)
+                    Regolazione(nome: "Size", valore: $studio.finestraCorrente.raggio, intervallo: 0.02...1, base: 0.25)
                 } else {
-                    Regolazione(nome: "Angolo", valore: $studio.finestraCorrente.angolo, intervallo: 0...360, base: 90, formato: "%.0f°")
+                    Regolazione(nome: "Angle", valore: $studio.finestraCorrente.angolo, intervallo: 0...360, base: 90, formato: "%.0f°")
                 }
                 HStack(spacing: 12) {
-                    Regolazione(nome: "Morbidezza", valore: $studio.finestraCorrente.morbidezza, intervallo: 0.01...1, base: 0.3)
-                    Regolazione(nome: "Sfocatura maschera", valore: $studio.nodo.sfocaturaMaschera, intervallo: 0...1, base: 0)
+                    Regolazione(nome: "Softness", valore: $studio.finestraCorrente.morbidezza, intervallo: 0.01...1, base: 0.3)
+                    Regolazione(nome: "Mask blur", valore: $studio.nodo.sfocaturaMaschera, intervallo: 0...1, base: 0)
                 }
-                Toggle("Inverti", isOn: $studio.finestraCorrente.inverti)
+                Toggle("Invert", isOn: $studio.finestraCorrente.inverti)
                     .tint(Tema.accento).font(.caption)
             }
             if studio.eVideo { SezioneTracker(studio: studio) }
             if studio.nodo.haMaschera {
-                Toggle("Mostra maschera", isOn: $studio.mostraMaschera)
+                Toggle("Show mask", isOn: $studio.mostraMaschera)
                     .tint(Tema.accento).font(.caption)
                 SceltaVistaMaschera(studio: studio)
             }
-            Text("Con le finestre la correzione del nodo vale solo dentro le forme: con più finestre vale dentro una qualsiasi (es. due volti). Per escludere una zona usa Inverti.")
+            Text("With windows the node's grade only applies inside the shapes: with several windows it applies inside any of them (e.g. two faces). To exclude an area use Invert.")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         }
     }
@@ -828,9 +828,9 @@ struct SezioneTracker: View {
 
     var body: some View {
         let traccia = studio.finestraCorrente.traccia
-        Sezione(titolo: conFinestra ? "Tracker (finestra \(studio.finestraScelta + 1))" : "Tracker") {
+        Sezione(titolo: conFinestra ? "Tracker (window \(studio.finestraScelta + 1))" : "Tracker") {
             Button { Task { await studio.seguiVolto() } } label: {
-                Label("Segui volto (AI)", systemImage: "face.smiling").font(.subheadline.weight(.semibold))
+                Label("Track face (AI)", systemImage: "face.smiling").font(.subheadline.weight(.semibold))
                     .frame(maxWidth: .infinity).frame(height: 38)
                     .background(RoundedRectangle(cornerRadius: 8).fill(Tema.accento.opacity(0.2)))
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Tema.accento.opacity(0.6), lineWidth: 1))
@@ -840,38 +840,38 @@ struct SezioneTracker: View {
             .disabled(studio.tracciando || studio.lavoro != nil)
             if conFinestra {
             HStack(spacing: 6) {
-                bottone("backward.fill", "Indietro", .indietro)
-                bottone("backward.frame.fill", "1 fot.", .fotogrammaIndietro)
-                bottone("arrow.left.and.right", "Entrambi", .entrambi)
-                bottone("forward.frame.fill", "1 fot.", .fotogrammaAvanti)
-                bottone("forward.fill", "Avanti", .avanti)
+                bottone("backward.fill", "Backward", .indietro)
+                bottone("backward.frame.fill", "1 frame", .fotogrammaIndietro)
+                bottone("arrow.left.and.right", "Both", .entrambi)
+                bottone("forward.frame.fill", "1 frame", .fotogrammaAvanti)
+                bottone("forward.fill", "Forward", .avanti)
             }
             }
             if studio.tracciando {
                 Button(role: .destructive) { studio.fermaTracking() } label: {
-                    Label("Ferma", systemImage: "stop.fill").font(.caption.weight(.semibold))
+                    Label("Stop", systemImage: "stop.fill").font(.caption.weight(.semibold))
                         .frame(maxWidth: .infinity).frame(height: 30)
                         .background(RoundedRectangle(cornerRadius: 6).fill(Tema.campo))
                 }
                 .buttonStyle(StilePulsante())
             }
             HStack(spacing: 6) {
-                Text("Segue:").font(.caption).foregroundStyle(Tema.testo2)
-                interruttore("Posizione", .constant(true)).disabled(true)
-                interruttore("Dimensione", $studio.tracciaDimensione)
-                interruttore("Rotazione", $studio.tracciaRotazione)
+                Text("Tracking:").font(.caption).foregroundStyle(Tema.testo2)
+                interruttore("Position", .constant(true)).disabled(true)
+                interruttore("Size", $studio.tracciaDimensione)
+                interruttore("Rotation", $studio.tracciaRotazione)
                 Spacer(minLength: 0)
             }
             if let primo = traccia.first, let ultimo = traccia.last {
                 HStack {
-                    Text("\(traccia.count) fotogrammi · da \(String(format: "%.2f", primo.tempo)) a \(String(format: "%.2f", ultimo.tempo)) s")
+                    Text("\(traccia.count) frames · from \(String(format: "%.2f", primo.tempo)) to \(String(format: "%.2f", ultimo.tempo)) s")
                         .font(.caption).foregroundStyle(Tema.testo2)
                     Spacer()
-                    Button("Cancella traccia", role: .destructive) { studio.cancellaTraccia() }.font(.caption)
+                    Button("Clear track", role: .destructive) { studio.cancellaTraccia() }.font(.caption)
                         .disabled(studio.tracciando)
                 }
             }
-            Text("Segui volto: porta la testina dove la faccia si vede bene e premi; la finestra la trova da sola (con più facce, quella più vicina alla finestra) e la segue in tutta la clip. Per altri oggetti: mettici sopra la finestra e scegli la direzione; la segue anche se si avvicina o ruota. Trascinandola si sposta tutta la traccia.")
+            Text("Track face: move the playhead to where the face is clearly visible and press; the window finds it by itself (with several faces, the one closest to the window) and follows it through the whole clip. For other objects: put the window over it and choose the direction; it keeps tracking even if it gets closer or rotates. Dragging it moves the whole track.")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         }
     }
@@ -888,7 +888,7 @@ struct SezioneTracker: View {
         .buttonStyle(StilePulsante())
         .foregroundStyle(studio.tracciando || studio.lavoro != nil ? Tema.testo2 : .white)
         .disabled(studio.tracciando || studio.lavoro != nil)
-        .accessibilityLabel(modo == .fotogrammaAvanti ? "Un fotogramma avanti" : modo == .fotogrammaIndietro ? "Un fotogramma indietro" : titolo)
+        .accessibilityLabel(modo == .fotogrammaAvanti ? "One frame forward" : modo == .fotogrammaIndietro ? "One frame backward" : titolo)
     }
 
     private func interruttore(_ titolo: String, _ valore: Binding<Bool>) -> some View {
@@ -910,13 +910,13 @@ struct SceltaVistaMaschera: View {
     var body: some View {
         if studio.mostraMaschera {
             VStack(alignment: .leading, spacing: 4) {
-                Picker("Vista maschera", selection: $studio.mascheraBN) {
-                    Text("Trasparente").tag(false)
-                    Text("Bianco e nero").tag(true)
+                Picker("Mask view", selection: $studio.mascheraBN) {
+                    Text("Transparent").tag(false)
+                    Text("Black and white").tag(true)
                 }
                 .pickerStyle(.segmented)
                 .sceltaMonitor($studio.mascheraBN, [false, true])
-                Text(studio.mascheraBN ? "Bianco = dove agisce la correzione." : "Vedi le correzioni dentro la maschera mentre le fai; fuori l'immagine è grigia.")
+                Text(studio.mascheraBN ? "White = where the grade applies." : "See the grades inside the mask while you make them; outside the image is gray.")
                     .font(.caption2).foregroundStyle(Tema.testo2)
             }
         }
@@ -929,29 +929,29 @@ struct PannelloEffetti: View {
     @ObservedObject var studio: Studio
     var body: some View {
         VStack(spacing: 10) {
-            TestataPalette(titolo: "Effetti", modificata: studio.nodo.effetti.attivi) { studio.nodo.effetti = Effetti() }
-            Sezione(titolo: "Dettaglio") {
+            TestataPalette(titolo: "Effects", modificata: studio.nodo.effetti.attivi) { studio.nodo.effetti = Effetti() }
+            Sezione(titolo: "Detail") {
                 HStack(spacing: 12) {
-                    Regolazione(nome: "Nitidezza", valore: $studio.nodo.effetti.nitidezza, intervallo: 0...1, base: 0)
+                    Regolazione(nome: "Sharpness", valore: $studio.nodo.effetti.nitidezza, intervallo: 0...1, base: 0)
                     Regolazione(nome: "Midtone Detail", valore: $studio.nodo.effetti.dettaglio, intervallo: -1...1, base: 0)
                 }
                 HStack(spacing: 12) {
-                    Regolazione(nome: "Riduzione rumore", valore: $studio.nodo.effetti.rumore, intervallo: 0...1, base: 0)
-                    Regolazione(nome: "Sfocatura", valore: $studio.nodo.effetti.sfocatura, intervallo: 0...1, base: 0)
+                    Regolazione(nome: "Noise reduction", valore: $studio.nodo.effetti.rumore, intervallo: 0...1, base: 0)
+                    Regolazione(nome: "Blur", valore: $studio.nodo.effetti.sfocatura, intervallo: 0...1, base: 0)
                 }
             }
-            Sezione(titolo: "Look pellicola") {
+            Sezione(titolo: "Film look") {
                 HStack(spacing: 12) {
-                    Regolazione(nome: "Grana", valore: $studio.nodo.effetti.grana, intervallo: 0...1, base: 0)
-                    Regolazione(nome: "Dimensione grana", valore: $studio.nodo.effetti.granaGrossa, intervallo: 0...1, base: 0.4)
+                    Regolazione(nome: "Grain", valore: $studio.nodo.effetti.grana, intervallo: 0...1, base: 0)
+                    Regolazione(nome: "Grain size", valore: $studio.nodo.effetti.granaGrossa, intervallo: 0...1, base: 0.4)
                 }
                 HStack(spacing: 12) {
                     Regolazione(nome: "Halation", valore: $studio.nodo.effetti.halation, intervallo: 0...1, base: 0)
                     Regolazione(nome: "Glow", valore: $studio.nodo.effetti.glow, intervallo: 0...1, base: 0)
                 }
-                Regolazione(nome: "Soglia luci (glow/halation)", valore: $studio.nodo.effetti.soglia, intervallo: 0.3...0.98, base: 0.75)
+                Regolazione(nome: "Highlight threshold (glow/halation)", valore: $studio.nodo.effetti.soglia, intervallo: 0.3...0.98, base: 0.75)
             }
-            Text("Gli effetti lavorano sui pixel vicini: valgono per foto e video, ma non entrano in una LUT. Se il nodo ha una maschera, gli effetti restano dentro la maschera.")
+            Text("Effects work on neighboring pixels: they apply to photos and videos, but they don't go into a LUT. If the node has a mask, the effects stay inside the mask.")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         }
     }
@@ -964,28 +964,28 @@ struct PannelloRegolazioni: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            TestataPalette(titolo: "Regolazioni", modificata: studio.nodo.grade.regolazioniModificate) { studio.nodo.grade.azzeraRegolazioni() }
+            TestataPalette(titolo: "Adjustments", modificata: studio.nodo.grade.regolazioniModificate) { studio.nodo.grade.azzeraRegolazioni() }
             HStack(spacing: 12) {
-                Regolazione(nome: "Esposizione", valore: $studio.nodo.grade.esposizione, intervallo: -3...3, base: 0)
-                Regolazione(nome: "Temperatura", valore: $studio.nodo.grade.temperatura, intervallo: -1...1, base: 0)
+                Regolazione(nome: "Exposure", valore: $studio.nodo.grade.esposizione, intervallo: -3...3, base: 0)
+                Regolazione(nome: "Temperature", valore: $studio.nodo.grade.temperatura, intervallo: -1...1, base: 0)
             }
             HStack(spacing: 12) {
-                Regolazione(nome: "Tinta", valore: $studio.nodo.grade.tinta, intervallo: -1...1, base: 0)
+                Regolazione(nome: "Hue", valore: $studio.nodo.grade.tinta, intervallo: -1...1, base: 0)
                 Regolazione(nome: "Color Boost", valore: $studio.nodo.grade.colorBoost, intervallo: -1...1, base: 0)
             }
             HStack(spacing: 12) {
-                Regolazione(nome: "Ombre", valore: $studio.nodo.grade.ombre, intervallo: -1...1, base: 0)
-                Regolazione(nome: "Luci", valore: $studio.nodo.grade.luci, intervallo: -1...1, base: 0)
+                Regolazione(nome: "Shadows", valore: $studio.nodo.grade.ombre, intervallo: -1...1, base: 0)
+                Regolazione(nome: "Highlights", valore: $studio.nodo.grade.luci, intervallo: -1...1, base: 0)
             }
             HStack(spacing: 12) {
-                Regolazione(nome: "Saturazione", valore: $studio.nodo.grade.saturazione, intervallo: 0...2, base: 1)
-                Regolazione(nome: "Rotazione tinta", valore: $studio.nodo.grade.rotazioneTinta, intervallo: -180...180, base: 0, formato: "%.0f°")
+                Regolazione(nome: "Saturation", valore: $studio.nodo.grade.saturazione, intervallo: 0...2, base: 1)
+                Regolazione(nome: "Hue rotation", valore: $studio.nodo.grade.rotazioneTinta, intervallo: -180...180, base: 0, formato: "%.0f°")
             }
             HStack(spacing: 12) {
-                Regolazione(nome: "Contrasto", valore: $studio.nodo.grade.contrasto, intervallo: 0...2, base: 1)
+                Regolazione(nome: "Contrast", valore: $studio.nodo.grade.contrasto, intervallo: 0...2, base: 1)
                 Regolazione(nome: "Pivot", valore: $studio.nodo.grade.pivot, intervallo: 0...1, base: 0.435, formato: "%.3f")
             }
-            Text("Doppio tocco sul nome di un cursore per azzerarlo.")
+            Text("Double-tap a slider's name to reset it.")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         }
     }
@@ -999,25 +999,25 @@ struct PannelloCST: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if studio.nodo.tipo != .cst {
-                Text("Il Color Space Transform trasforma il footage Log della camera in Rec.709. Si aggiunge come nodo a sé, all'inizio della catena.")
+                Text("The Color Space Transform converts the camera's Log footage to Rec.709. It is added as a node of its own, at the start of the chain.")
                     .font(.caption).foregroundStyle(Tema.testo2)
-                Button { studio.aggiungi(.cst) } label: { Label("Aggiungi nodo CST", systemImage: "plus") }
+                Button { studio.aggiungi(.cst) } label: { Label("Add CST node", systemImage: "plus") }
             } else {
                 TestataPalette(titolo: "Color Space Transform", modificata: studio.nodo.cst.esposizione != 0 || !studio.nodo.cst.toneMapping || !studio.nodo.cst.compressioneGamut) { let cam = studio.nodo.cst.camera; studio.nodo.cst = CST(camera: cam) }
-                Picker("Camera / gamma di ingresso", selection: $studio.nodo.cst.camera) {
+                Picker("Camera / input gamma", selection: $studio.nodo.cst.camera) {
                     ForEach(CST.Camera.allCases) { Text($0.rawValue).tag($0) }
                 }
                 .pickerStyle(.menu)
                 .menuMonitor($studio.nodo.cst.camera, CST.Camera.allCases, nome: { $0.rawValue })
                 HStack {
-                    Text("Uscita").font(.caption)
+                    Text("Fade out").font(.caption)
                     Spacer()
                     Text("Rec.709 · Gamma 2.4").font(.caption).foregroundStyle(Tema.testo2)
                 }
-                Regolazione(nome: "Esposizione (stop)", valore: $studio.nodo.cst.esposizione, intervallo: -3...3, base: 0)
-                Toggle("Tone mapping (recupera le alte luci)", isOn: $studio.nodo.cst.toneMapping).tint(Tema.accento).font(.caption)
-                Toggle("Gamut mapping (i colori fuori gamma rientrano morbidi)", isOn: $studio.nodo.cst.compressioneGamut).tint(Tema.accento).font(.caption)
-                Text("Per il footage Blackmagic girato in \"Film\": scegli Blackmagic Film Gen 5. Metti le correzioni nei nodi dopo il CST.")
+                Regolazione(nome: "Exposure (stops)", valore: $studio.nodo.cst.esposizione, intervallo: -3...3, base: 0)
+                Toggle("Tone mapping (recovers highlights)", isOn: $studio.nodo.cst.toneMapping).tint(Tema.accento).font(.caption)
+                Toggle("Gamut mapping (out-of-gamut colors come back in smoothly)", isOn: $studio.nodo.cst.compressioneGamut).tint(Tema.accento).font(.caption)
+                Text("For Blackmagic footage shot in \"Film\": choose Blackmagic Film Gen 5. Put your grades in the nodes after the CST.")
                     .font(.caption2).foregroundStyle(Tema.testo2)
             }
         }
@@ -1032,7 +1032,7 @@ struct PannelloLUTNodo: View {
                 Text("LUT: \(l.titolo)").font(.subheadline)
                 Text(l.descrizione).font(.caption).foregroundStyle(Tema.testo2)
             }
-            Text("Questo nodo applica una LUT importata. Spegnilo o spostalo dal grafo dei nodi (tieni premuto sul nodo).")
+            Text("This node applies an imported LUT. Turn it off or move it from the node graph (press and hold the node).")
                 .font(.caption2).foregroundStyle(Tema.testo2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1046,30 +1046,30 @@ struct PannelloGalleria: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            Sezione(titolo: "Color Match · copia i colori di un'altra inquadratura") {
+            Sezione(titolo: "Color Match · copy the colors of another shot") {
                 let altre = studio.progetto.clips.filter { $0.id != studio.clipAttiva }
                 if altre.isEmpty && studio.progetto.stills.isEmpty {
-                    Text("Serve un riferimento: un'altra clip nel progetto o uno still nella galleria.").font(.caption2).foregroundStyle(Tema.testo2)
+                    Text("A reference is needed: another clip in the project or a still in the gallery.").font(.caption2).foregroundStyle(Tema.testo2)
                 } else {
                     if !altre.isEmpty {
                         Menu {
                             ForEach(altre) { c in Button(c.nome) { Task { await studio.colorMatch(clip: c.id) } } }
-                        } label: { Label("Abbina a una clip…", systemImage: "wand.and.rays") }
+                        } label: { Label("Match to a clip…", systemImage: "wand.and.rays") }
                         .font(.subheadline)
                     }
-                    Text("Aggiunge un nodo \"Color Match\" che porta livelli e colori di questa clip verso il riferimento. Per gli still: tieni premuto e scegli Color Match.")
+                    Text("Adds a \"Color Match\" node that brings this clip's levels and colors towards the reference. For stills: press and hold and choose Color Match.")
                         .font(.caption2).foregroundStyle(Tema.testo2)
                 }
             }
             HStack {
-                Button { studio.catturaStill() } label: { Label("Cattura still", systemImage: "camera.viewfinder") }
+                Button { studio.catturaStill() } label: { Label("Grab still", systemImage: "camera.viewfinder") }
                 Spacer()
-                Button { studio.salvaVersione() } label: { Label("Salva versione", systemImage: "square.stack.3d.up") }
+                Button { studio.salvaVersione() } label: { Label("Save version", systemImage: "square.stack.3d.up") }
             }
             .font(.subheadline)
-            Sezione(titolo: "Stills · tocca per confrontare (split-screen), tieni premuto per applicare") {
+            Sezione(titolo: "Stills · tap to compare (split-screen), press and hold to apply") {
                 if studio.progetto.stills.isEmpty {
-                    Text("Nessuno still. Cattura il fotogramma di un'inquadratura riuscita per far combaciare le altre.")
+                    Text("No stills. Grab a frame from a successful shot to match the others to it.")
                         .font(.caption2).foregroundStyle(Tema.testo2)
                 }
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 6)], spacing: 6) {
@@ -1084,25 +1084,25 @@ struct PannelloGalleria: View {
                         .background(RoundedRectangle(cornerRadius: 5).stroke(studio.confronto?.id == s.id ? Tema.accento : Tema.bordo, lineWidth: studio.confronto?.id == s.id ? 2 : 1))
                         .onTapGesture { studio.confronto = studio.confronto?.id == s.id ? nil : s }
                         .contextMenu {
-                            Button { studio.applicaStill(s) } label: { Label("Applica questa correzione", systemImage: "wand.and.rays") }
-                            Button { studio.colorMatch(still: s) } label: { Label("Color Match da questo still", systemImage: "eyedropper.halffull") }
-                            Button { studio.confronto = s } label: { Label("Confronta", systemImage: "rectangle.split.2x1") }
-                            Button(role: .destructive) { studio.eliminaStill(s) } label: { Label("Elimina", systemImage: "trash") }
+                            Button { studio.applicaStill(s) } label: { Label("Apply this grade", systemImage: "wand.and.rays") }
+                            Button { studio.colorMatch(still: s) } label: { Label("Color Match from this still", systemImage: "eyedropper.halffull") }
+                            Button { studio.confronto = s } label: { Label("Compare", systemImage: "rectangle.split.2x1") }
+                            Button(role: .destructive) { studio.eliminaStill(s) } label: { Label("Delete", systemImage: "trash") }
                         }
                     }
                 }
             }
-            Sezione(titolo: "Versioni della clip") {
+            Sezione(titolo: "Clip versions") {
                 let versioni = studio.clipCorrente?.versioni ?? []
                 if versioni.isEmpty {
-                    Text("Salva più versioni della correzione per provare look diversi sulla stessa clip.")
+                    Text("Save several versions of the grade to try different looks on the same clip.")
                         .font(.caption2).foregroundStyle(Tema.testo2)
                 }
                 ForEach(versioni) { v in
                     HStack {
                         Button(v.nome) { studio.caricaVersione(v) }
                         Spacer()
-                        Text("\(v.nodi.count) nodi").font(.caption2).foregroundStyle(Tema.testo2)
+                        Text("\(v.nodi.count) nodes").font(.caption2).foregroundStyle(Tema.testo2)
                         Button(role: .destructive) { studio.eliminaVersione(v) } label: { Image(systemName: "trash") }
                     }
                     .font(.caption)
@@ -1133,42 +1133,42 @@ struct PannelloConsegna: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             sezioneSocial
-            Sezione(titolo: "Esporta LUT (.cube, come \"Generate LUT\" di DaVinci)") {
-                TextField("Nome", text: $nomeLUT).textFieldStyle(.roundedBorder)
-                Picker("Punti", selection: $dimensioneLUT) {
+            Sezione(titolo: "Export LUT (.cube, like DaVinci's \"Generate LUT\")") {
+                TextField("Name", text: $nomeLUT).textFieldStyle(.roundedBorder)
+                Picker("Points", selection: $dimensioneLUT) {
                     Text("17").tag(17); Text("33").tag(33); Text("65").tag(65)
                 }
                 .pickerStyle(.segmented)
                 .sceltaMonitor($dimensioneLUT, [17, 33, 65])
-                Button(action: salvaLUT) { Label("Salva LUT di questa clip", systemImage: "cube") }
+                Button(action: salvaLUT) { Label("Save LUT for this clip", systemImage: "cube") }
                 if studio.progetto.clips.count > 1 {
-                    Button(action: salvaTutte) { Label("Salva una LUT per ogni clip (\(studio.progetto.clips.count))", systemImage: "square.stack.3d.down.right") }
+                    Button(action: salvaTutte) { Label("Save one LUT per clip (\(studio.progetto.clips.count))", systemImage: "square.stack.3d.down.right") }
                 }
-                Text("Funziona in DaVinci, Premiere, Final Cut e nelle camere. I nodi con maschere o effetti non entrano in una LUT.")
+                Text("Works in DaVinci, Premiere, Final Cut and in cameras. Nodes with masks or effects don't go into a LUT.")
                     .font(.caption2).foregroundStyle(Tema.testo2)
             }
-            Sezione(titolo: "Esporta CDL (Galleria di DaVinci)") {
-                Button(action: salvaCDL) { Label("Salva correzione come ASC CDL (.cdl)", systemImage: "doc.badge.gearshape") }
-                Text("Il CDL contiene solo Slope/Offset/Power e Saturazione: si importa nella Galleria di DaVinci e si applica come grade modificabile. Curve e secondarie non ci stanno: l'app ti dice quanto è fedele.")
+            Sezione(titolo: "Export CDL (DaVinci Gallery)") {
+                Button(action: salvaCDL) { Label("Save grade as ASC CDL (.cdl)", systemImage: "doc.badge.gearshape") }
+                Text("The CDL only contains Slope/Offset/Power and Saturation: it is imported into DaVinci's Gallery and applied as an editable grade. Curves and secondaries don't fit: the app tells you how accurate it is.")
                     .font(.caption2).foregroundStyle(Tema.testo2)
             }
-            Sezione(titolo: "Importa") {
-                Button(action: importaLUT) { Label("LUT (.cube 1D/3D) o CDL (.cdl .cc .ccc) come nodo", systemImage: "square.and.arrow.down") }
+            Sezione(titolo: "Import") {
+                Button(action: importaLUT) { Label("LUT (.cube 1D/3D) or CDL (.cdl .cc .ccc) as a node", systemImage: "square.and.arrow.down") }
             }
-            Sezione(titolo: "Portare il lavoro in DaVinci Resolve") {
-                Button(guida ? "Nascondi" : "Come si fa") { guida.toggle() }.font(.caption)
+            Sezione(titolo: "Taking your work into DaVinci Resolve") {
+                Button(guida ? "Hide" : "How to") { guida.toggle() }.font(.caption)
                 if guida {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("LUT: in DaVinci, pagina Color → tasto destro sul nodo → LUT, oppure copia il .cube nella cartella LUT (Impostazioni progetto → Color Management → Apri cartella LUT → Aggiorna elenchi). Per più clip usa \"una LUT per ogni clip\": hanno il nome della clip.")
-                        Text("CDL: pagina Color → Galleria → tasto destro → Importa → scegli il .cdl → tasto destro sullo still → Applica grade.")
-                        Text("Il progetto di DaVinci (.drp) e i suoi grade (.drx) sono formati chiusi di Blackmagic: Colors non li scrive. LUT e CDL sono il modo standard di passare una correzione.")
+                        Text("LUT: in DaVinci, Color page → right-click the node → LUT, or copy the .cube into the LUT folder (Project Settings → Color Management → Open LUT Folder → Update Lists). For several clips use \"one LUT per clip\": they are named after the clip.")
+                        Text("CDL: Color page → Gallery → right-click → Import → choose the .cdl → right-click the still → Apply Grade.")
+                        Text("The DaVinci project (.drp) and its grades (.drx) are closed Blackmagic formats: Colors doesn't write them. LUT and CDL are the standard way to pass a grade along.")
                     }
                     .font(.caption2).foregroundStyle(Tema.testo2)
                 }
             }
             if studio.eVideo {
                 Sezione(titolo: "Video") {
-                    Picker("Formato", selection: $formato) {
+                    Picker("Format", selection: $formato) {
                         ForEach(FormatoVideo.allCases) { Text($0.rawValue).tag($0) }
                     }
                     .pickerStyle(.segmented)
@@ -1177,22 +1177,22 @@ struct PannelloConsegna: View {
                         HStack { ProgressView(); Text(s).font(.caption) }
                     } else {
                         Button { Task { await studio.esportaVideo(formato) } } label: {
-                            Label("Esporta video corretto nel Rullino", systemImage: "film")
+                            Label("Export graded video to the Camera Roll", systemImage: "film")
                         }
                     }
-                    Text(formato == .prores ? "ProRes 422 HQ 10 bit: massima qualità per montare o rifinire altrove (file grandi)." : "HEVC: file piccoli, ottimo per condividere.")
+                    Text(formato == .prores ? "ProRes 422 HQ 10-bit: maximum quality for editing or finishing elsewhere (large files)." : "HEVC: small files, great for sharing.")
                         .font(.caption2).foregroundStyle(Tema.testo2)
                 }
             } else {
-                Sezione(titolo: "Foto") {
+                Sezione(titolo: "Photo") {
                     if let f = foto {
-                        ShareLink(item: f, preview: SharePreview("Foto Colors", image: f)) {
-                            Label("Condividi / salva la foto", systemImage: "square.and.arrow.up")
+                        ShareLink(item: f, preview: SharePreview("Colors photo", image: f)) {
+                            Label("Share / save the photo", systemImage: "square.and.arrow.up")
                         }
                     }
                     Button {
                         if let ui = studio.fotoCorretta() { foto = Image(uiImage: ui) }
-                    } label: { Label("Prepara foto a piena risoluzione", systemImage: "wand.and.stars") }
+                    } label: { Label("Prepare full-resolution photo", systemImage: "wand.and.stars") }
                 }
             }
         }
@@ -1200,7 +1200,7 @@ struct PannelloConsegna: View {
 
     /// Preset per i social, come in Deliver di DaVinci.
     private var sezioneSocial: some View {
-        Sezione(titolo: "Social e web") {
+        Sezione(titolo: "Social and web") {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 6)], spacing: 6) {
                 ForEach(FormatoSocial.allCases) { f in
                     Button { social = f; fotoPerSocial = nil } label: {
@@ -1220,17 +1220,17 @@ struct PannelloConsegna: View {
             }
             Text(social.descrizione).font(.caption2).foregroundStyle(Tema.testo2)
             if studio.progetto.clips.count > 1 {
-                Picker("Cosa esportare", selection: $montaggioIntero) {
-                    Text("Questa clip").tag(false)
-                    Text("Montaggio intero (\(studio.progetto.clips.count) clip)").tag(true)
+                Picker("What to export", selection: $montaggioIntero) {
+                    Text("This clip").tag(false)
+                    Text("Whole edit (\(studio.progetto.clips.count) clips)").tag(true)
                 }
                 .pickerStyle(.segmented)
                 .sceltaMonitor($montaggioIntero, [false, true])
             }
             if social != .originale {
-                Picker("Inquadratura", selection: $riempi) {
-                    Text("Riempi (taglia i bordi)").tag(true)
-                    Text("Adatta (bande nere)").tag(false)
+                Picker("Framing", selection: $riempi) {
+                    Text("Fill (crops the edges)").tag(true)
+                    Text("Fit (black bars)").tag(false)
                 }
                 .pickerStyle(.segmented)
                 .sceltaMonitor($riempi, [true, false])
@@ -1241,7 +1241,7 @@ struct PannelloConsegna: View {
                     HStack { ProgressView(); Text(s).font(.caption) }
                 } else {
                     Button { Task { if montaggioIntero { await studio.esportaMontaggio(social, riempi: social == .originale ? false : riempi) } else { await studio.esportaSocial(social, riempi: riempi) } } } label: {
-                        Label("Esporta per \(social.rawValue)", systemImage: "paperplane.fill")
+                        Label("Export for \(social.rawValue)", systemImage: "paperplane.fill")
                             .font(.subheadline.weight(.semibold))
                             .frame(maxWidth: .infinity).frame(height: 40)
                             .background(RoundedRectangle(cornerRadius: 8).fill(Tema.accento))
@@ -1253,7 +1253,7 @@ struct PannelloConsegna: View {
                 Button {
                     if let ui = studio.fotoSocial(social, riempi: riempi) { fotoPerSocial = Image(uiImage: ui) }
                 } label: {
-                    Label("Prepara foto per \(social.rawValue)", systemImage: "wand.and.stars")
+                    Label("Prepare photo for \(social.rawValue)", systemImage: "wand.and.stars")
                         .font(.subheadline.weight(.semibold))
                         .frame(maxWidth: .infinity).frame(height: 40)
                         .background(RoundedRectangle(cornerRadius: 8).fill(Tema.accento))
@@ -1261,8 +1261,8 @@ struct PannelloConsegna: View {
                 }
                 .buttonStyle(StilePulsante())
                 if let f = fotoPerSocial {
-                    ShareLink(item: f, preview: SharePreview("Foto \(social.rawValue)", image: f)) {
-                        Label("Condividi / salva la foto", systemImage: "square.and.arrow.up")
+                    ShareLink(item: f, preview: SharePreview("Photo \(social.rawValue)", image: f)) {
+                        Label("Share / save the photo", systemImage: "square.and.arrow.up")
                     }
                 }
             }

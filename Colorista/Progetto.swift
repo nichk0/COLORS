@@ -27,14 +27,14 @@ struct Clip: Identifiable, Codable, Hashable {
 }
 
 enum Transizione: String, Codable, CaseIterable, Identifiable {
-    case nessuna = "Taglio netto", incrociata = "Dissolvenza incrociata", nero = "Dissolvenza al nero", bianco = "Dissolvenza al bianco"
+    case nessuna = "Hard cut", incrociata = "Cross dissolve", nero = "Dip to black", bianco = "Dip to white"
     var id: String { rawValue }
 }
 
 /// Testo sopra la clip.
 struct Titolo: Codable, Hashable {
     enum Colore: String, Codable, CaseIterable, Identifiable {
-        case bianco = "Bianco", nero = "Nero", giallo = "Giallo", arancio = "Arancio"
+        case bianco = "White", nero = "Black", giallo = "Yellow", arancio = "Orange"
         var id: String { rawValue }
     }
     var testo = ""
@@ -200,7 +200,7 @@ struct Progetto: Codable {
     var ripetiMusica = true             // se le tracce sono più corte del montaggio, si ricomincia
     var stills: [Still] = []
     var clipAttiva: UUID?
-    var nome = "Progetto"
+    var nome = "Project"
     var creato = Date()
     var modificato = Date()
     var id = UUID()
@@ -224,7 +224,7 @@ struct Progetto: Codable {
         ripetiMusica = (try? c.decodeIfPresent(Bool.self, forKey: .ripetiMusica)) ?? true
         stills = (try? c.decodeIfPresent([Still].self, forKey: .stills)) ?? []
         clipAttiva = try? c.decodeIfPresent(UUID.self, forKey: .clipAttiva)
-        nome = (try? c.decodeIfPresent(String.self, forKey: .nome)) ?? "Progetto"
+        nome = (try? c.decodeIfPresent(String.self, forKey: .nome)) ?? "Project"
         creato = (try? c.decodeIfPresent(Date.self, forKey: .creato)) ?? Date()
         modificato = (try? c.decodeIfPresent(Date.self, forKey: .modificato)) ?? creato
         id = (try? c.decodeIfPresent(UUID.self, forKey: .id)) ?? UUID()
@@ -262,7 +262,7 @@ struct Progetto: Codable {
 enum Archivio {
     static let radice: URL = {
         let d = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("Colorista", isDirectory: true)
-        for sub in ["Media", "Miniature", "Stills", "Progetti"] {
+        for sub in ["Media", "Miniature", "Stills", "Projects"] {
             try? FileManager.default.createDirectory(at: d.appendingPathComponent(sub), withIntermediateDirectories: true)
         }
         return d

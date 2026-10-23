@@ -30,7 +30,7 @@ final class StatoVideo: @unchecked Sendable {
 }
 
 enum Contagocce { case nessuno, bianco, qualificatore, curva }
-enum FormatoVideo: String, CaseIterable, Identifiable { case hevc = "HEVC 10 bit", prores = "ProRes 422 HQ"; var id: String { rawValue } }
+enum FormatoVideo: String, CaseIterable, Identifiable { case hevc = "HEVC 10-bit", prores = "ProRes 422 HQ"; var id: String { rawValue } }
 
 /// Stato dell'app: progetto, clip attiva, nodi, anteprima, scope, galleria ed esportazioni.
 @MainActor
@@ -104,13 +104,13 @@ final class Studio: ObservableObject {
     @Published var falsoColore = false { didSet { aggiorna() } }
     /// Ultimo colore preso col contagocce (per mostrarlo): colore 0…1 e cosa ci si è fatto.
     @Published var colorePreso: (colore: SIMD3<Float>, uso: String)?
-    @Published var contagocce: Contagocce = .nessuno { didSet { if contagocce != oldValue { GestoreMonitor.scrivi("contagocce: \(contagocce)") } } }
+    @Published var contagocce: Contagocce = .nessuno { didSet { if contagocce != oldValue { GestoreMonitor.scrivi("eyedropper: \(contagocce)") } } }
     /// Curva su cui lavora il contagocce delle curve.
     var curvaContagocce: TipoCurva?
     @Published var confronto: Still?
     @Published var tendina: CGFloat = 0.5
     @Published var messaggio: String?
-    @Published private(set) var nomeClip = "Immagine di prova"
+    @Published private(set) var nomeClip = "Test image"
     @Published private(set) var dimensioni = ""
     @Published private(set) var lavoro: String?     // operazione lunga in corso (export, tracker…)
 
@@ -156,7 +156,7 @@ final class Studio: ObservableObject {
         if let id = progetto.clipAttiva ?? progetto.clips.first?.id {
             Task { await apriClip(id) }
         } else {
-            mostraFoto(TestChart.immagine(), nome: "Immagine di prova")
+            mostraFoto(TestChart.immagine(), nome: "Test image")
         }
         azzeraCronologia()   // l'impostazione iniziale dei nodi non è un passo da annullare
         aggiornaElencoProgetti()
@@ -368,13 +368,13 @@ final class Studio: ObservableObject {
 
     /// Tocco sull'anteprima (coordinate 0…1, y verso il basso).
     func tocco(_ p: CGPoint) {
-        GestoreMonitor.scrivi("contagocce \(contagocce) in \(String(format: "%.2f,%.2f", p.x, p.y)), immagine \(sorgente == nil ? "assente" : "ok")")
+        GestoreMonitor.scrivi("eyedropper \(contagocce) at \(String(format: "%.2f,%.2f", p.x, p.y)), image \(sorgente == nil ? "missing" : "ok")")
         guard contagocce != .nessuno, let src = sorgente else { return }
         let ingresso = catena().applica(src, finoA: nodi.prefix(indice).filter(\.attivo).count)
-        guard let c = media(ingresso, p) else { GestoreMonitor.scrivi("contagocce: colore non letto"); return }
-        let usi: [Contagocce: String] = [.bianco: "bilanciamento del bianco", .qualificatore: "qualificatore", .curva: "curva"]
+        guard let c = media(ingresso, p) else { GestoreMonitor.scrivi("eyedropper: color not read"); return }
+        let usi: [Contagocce: String] = [.bianco: "white balance", .qualificatore: "qualifier", .curva: "curve"]
         colorePreso = (c, usi[contagocce] ?? "")
-        GestoreMonitor.scrivi("contagocce: preso R \(Int(c.x * 255)) G \(Int(c.y * 255)) B \(Int(c.z * 255))")
+        GestoreMonitor.scrivi("eyedropper: picked R \(Int(c.x * 255)) G \(Int(c.y * 255)) B \(Int(c.z * 255))")
         switch contagocce {
         case .bianco:
             let l = (c * Grade.lumaRec709).sum()
@@ -424,7 +424,7 @@ final class Studio: ObservableObject {
             bianco[k] = Float(s[Int(Float(s.count - 1) * 0.995)]) / 255
         }
         let gamma = bianco - nero
-        guard gamma.min() > 0.05 else { messaggio = "Immagine troppo uniforme per il bilanciamento automatico."; return }
+        guard gamma.min() > 0.05 else { messaggio = "Image too uniform for auto balance."; return }
         nodo.grade.nero = nero
         nodo.grade.bilanciamento = SIMD3(repeating: 1) / gamma
     }
@@ -440,7 +440,7 @@ final class Studio: ObservableObject {
         let k = 640 / max(ingresso.extent.width, ingresso.extent.height)
         let piccola = ingresso.transformed(by: CGAffineTransform(scaleX: min(k, 1), y: min(k, 1)))
         let g = AutoColore.grade(per: piccola, contesto: contesto, spazio: spazio)
-        guard AutoColore.modifiche(g) > 0 else { messaggio = "L'AI non trova niente da correggere: l'immagine è già bilanciata."; return }
+        guard AutoColore.modifiche(g) > 0 else { messaggio = "The AI finds nothing to correct: the image is already balanced."; return }
         if rifai { nodi[indice].grade = g; return }
         var n = Nodo(tipo: .correzione)
         n.nome = "Auto AI"
@@ -453,7 +453,7 @@ final class Studio: ObservableObject {
     func lookDaParole(_ testo: String) async {
         let t = testo.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty else { return }
-        lavoro = "L'AI sta creando il look…"
+        lavoro = "The AI is creating the look…"
         defer { lavoro = nil }
         do {
             var n = try await LookAParole.nodo(per: t)
@@ -461,7 +461,7 @@ final class Studio: ObservableObject {
             nodi.insert(n, at: min(indice + 1, nodi.count))
             selezionato = n.id
         } catch {
-            messaggio = "Non riesco a creare il look: \(error.localizedDescription)"
+            messaggio = "Can't create the look: \(error.localizedDescription)"
         }
     }
 
@@ -515,7 +515,7 @@ final class Studio: ObservableObject {
         n.grade.nero = nero
         nodi.insert(n, at: min(indice + 1, nodi.count))
         selezionato = n.id
-        messaggio = "Colori abbinati a \(nome). Il nodo \"Color Match\" si può spegnere o ritoccare."
+        messaggio = "Colors matched to \(nome). The \"Color Match\" node can be turned off or fine-tuned."
     }
 
     func colorMatch(still s: Still) {
@@ -543,7 +543,7 @@ final class Studio: ObservableObject {
         } else if let ui = UIImage(contentsOfFile: url.path)?.ridotta(lato: 480), let cg = ui.cgImage {
             img = CIImage(cgImage: cg)
         }
-        guard let img else { messaggio = "Non riesco a leggere la clip di riferimento."; return }
+        guard let img else { messaggio = "Can't read the reference clip."; return }
         let corretta = Fabbrica.condivisa.catena(nodi: c.nodi, tempo: tempoRif, size: 33, spazio: spazioRif).applica(img)
         colorMatch(verso: corretta, nome: "«\(c.nome)»")
     }
@@ -606,7 +606,7 @@ final class Studio: ObservableObject {
             Archivio.salva(progetto)
             await aggiornaDurate()
         } catch {
-            messaggio = "Non riesco a importare: \(error.localizedDescription)"
+            messaggio = "Can't import: \(error.localizedDescription)"
         }
     }
 
@@ -656,7 +656,7 @@ final class Studio: ObservableObject {
     func importaDaLibreria(_ items: [PhotosPickerItem]) async {
         var falliti = 0
         for (i, item) in items.enumerated() {
-            lavoro = items.count > 1 ? "Importo \(i + 1) di \(items.count)…" : "Importo dalla Libreria…"
+            lavoro = items.count > 1 ? "Importing \(i + 1) of \(items.count)…" : "Importing from the Library…"
             if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
                 do {
                     guard let v = try await item.loadTransferable(type: FileVideo.self) else { falliti += 1; continue }
@@ -666,25 +666,25 @@ final class Studio: ObservableObject {
                     falliti += 1
                 }
             } else if let d = try? await item.loadTransferable(type: Data.self) {
-                await importaFoto(d, nome: "Foto \(progetto.clips.count + 1)")
+                await importaFoto(d, nome: "Photo \(progetto.clips.count + 1)")
             } else {
                 falliti += 1
             }
         }
         lavoro = nil
         if falliti > 0 {
-            messaggio = falliti == items.count ? "Non riesco a importare quello che hai scelto. Se è su iCloud, aprilo prima in Foto per scaricarlo."
-                : "\(falliti) elementi non sono stati importati (forse sono su iCloud e non ancora scaricati)."
+            messaggio = falliti == items.count ? "Can't import what you chose. If it's in iCloud, open it in Photos first to download it."
+                : "\(falliti) items were not imported (maybe they are in iCloud and not downloaded yet)."
         }
     }
 
     func importaVideo(_ url: URL) async {
         do { await aggiungiClip(file: try Archivio.importa(url), nome: url.lastPathComponent, video: true) }
-        catch { messaggio = "Non riesco a importare il video: \(error.localizedDescription)" }
+        catch { messaggio = "Can't import the video: \(error.localizedDescription)" }
     }
 
     func importaFoto(_ dati: Data, nome: String) async {
-        guard UIImage(data: dati) != nil else { messaggio = "Non riesco ad aprire questa foto."; return }
+        guard UIImage(data: dati) != nil else { messaggio = "Can't open this photo."; return }
         do { await aggiungiClip(file: try Archivio.importa(dati: dati, estensione: "jpg"), nome: nome, video: false) }
         catch { messaggio = error.localizedDescription }
     }
@@ -706,7 +706,7 @@ final class Studio: ObservableObject {
         if clipAttiva == id {
             clipAttiva = nil
             if let primo = progetto.clips.first { await apriClip(primo.id) }
-            else { caricando = true; nodi = [Nodo(tipo: .correzione)]; selezionato = nodi[0].id; caricando = false; mostraFoto(TestChart.immagine(), nome: "Immagine di prova") }
+            else { caricando = true; nodi = [Nodo(tipo: .correzione)]; selezionato = nodi[0].id; caricando = false; mostraFoto(TestChart.immagine(), nome: "Test image") }
         }
         Archivio.salva(progetto)
     }
@@ -773,13 +773,13 @@ final class Studio: ObservableObject {
                 let suonava = self.sequenzaInRiproduzione
                 self.playerSequenza.replaceCurrentItem(with: item)
                 self.durataSequenza = piano.durata
-                if piano.musicaNonValida, !self.avvisoMusica { self.avvisoMusica = true; self.messaggio = "Non riesco ad aprire la musica: il montaggio è senza musica. Prova a sceglierne un'altra." }
+                if piano.musicaNonValida, !self.avvisoMusica { self.avvisoMusica = true; self.messaggio = "Can't open the music: the edit has no music. Try choosing another one." }
                 self.osservaSequenza()
                 await self.playerSequenza.seek(to: CMTime(seconds: t, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
                 if suonava { self.playerSequenza.play() }
             } catch {
                 let e = error as NSError
-                self.messaggio = "Non riesco a preparare il montaggio: \(error.localizedDescription) (\(e.domain) \(e.code))"
+                self.messaggio = "Can't prepare the edit: \(error.localizedDescription) (\(e.domain) \(e.code))"
             }
         }
     }
@@ -875,11 +875,11 @@ final class Studio: ObservableObject {
     func dividi(_ id: UUID, aTempo tempo: Double) {
         salvaNodiNellaClip()
         guard let i = progetto.clips.firstIndex(where: { $0.id == id }), progetto.clips[i].video,
-              i < iniziClip.count else { GestoreMonitor.scrivi("taglio: clip non trovata o non video"); return }
+              i < iniziClip.count else { GestoreMonitor.scrivi("trim: clip not found or not a video"); return }
         let m = progetto.clips[i].taglio
         let t = tempo - iniziClip[i]
-        GestoreMonitor.scrivi("taglio: clip \(i + 1) a \(String(format: "%.2f", tempo)) s (dentro la clip \(String(format: "%.2f", t)) di \(String(format: "%.2f", durateClip[i])) s, file \(durateFile[progetto.clips[i].file].map { String(format: "%.1f", $0) } ?? "durata non letta"))")
-        guard t > 0.1, t < durateClip[i] - 0.1 else { messaggio = "Porta la testina dentro la clip selezionata per dividerla."; return }
+        GestoreMonitor.scrivi("trim: clip \(i + 1) at \(String(format: "%.2f", tempo)) s (inside the clip \(String(format: "%.2f", t)) of \(String(format: "%.2f", durateClip[i])) s, file \(durateFile[progetto.clips[i].file].map { String(format: "%.1f", $0) } ?? "duration not read"))")
+        guard t > 0.1, t < durateClip[i] - 0.1 else { messaggio = "Move the playhead inside the selected clip to split it."; return }
         let taglio = m.inizio + t * m.velocita
         var prima = progetto.clips[i], seconda = progetto.clips[i]
         seconda.id = UUID()
@@ -902,7 +902,7 @@ final class Studio: ObservableObject {
         salvaNodiNellaClip()
         guard let i = progetto.clips.firstIndex(where: { $0.id == clipAttiva }), progetto.clips[i].video else { return }
         pausaSequenza()
-        lavoro = "Cerco i cambi di scena…"
+        lavoro = "Looking for scene changes…"
         defer { lavoro = nil }
         let c = progetto.clips[i]
         let m = c.taglio
@@ -911,9 +911,9 @@ final class Studio: ObservableObject {
             let d = try await AVURLAsset(url: url).load(.duration).seconds
             let fine = min(m.fine ?? d, d)
             let tagli = try await CambiScena.tagli(url: url, da: m.inizio, a: fine) { [weak self] p in
-                Task { @MainActor in self?.lavoro = "Scene… \(Int(p * 100))%" }
+                Task { @MainActor in self?.lavoro = "Scenes… \(Int(p * 100))%" }
             }
-            guard !tagli.isEmpty else { messaggio = "Non ho trovato cambi di scena in questa clip."; return }
+            guard !tagli.isEmpty else { messaggio = "No scene changes found in this clip."; return }
             let confini = [m.inizio] + tagli + [fine]
             var nuove: [Clip] = []
             for (k, (a, b)) in zip(confini, confini.dropFirst()).enumerated() {
@@ -929,9 +929,9 @@ final class Studio: ObservableObject {
             progetto.clips.replaceSubrange(i...i, with: nuove)
             Archivio.salva(progetto)
             aggiornaSequenza(ritardo: 0)
-            messaggio = "Clip divisa in \(nuove.count) scene."
+            messaggio = "Clip split into \(nuove.count) scenes."
         } catch {
-            messaggio = "Divisione non riuscita: \(error.localizedDescription)"
+            messaggio = "Split failed: \(error.localizedDescription)"
         }
     }
 
@@ -951,7 +951,7 @@ final class Studio: ObservableObject {
             Archivio.salva(progetto)
             aggiornaSequenza(ritardo: 0)
         } catch {
-            messaggio = "Non riesco a importare l'audio: \(error.localizedDescription)"
+            messaggio = "Can't import the audio: \(error.localizedDescription)"
         }
     }
 
@@ -959,19 +959,19 @@ final class Studio: ObservableObject {
     func aggiungiAudioDaLibreria(_ items: [PhotosPickerItem]) async {
         var falliti = 0
         for (i, item) in items.enumerated() {
-            lavoro = "Prendo l'audio \(i + 1) di \(items.count)…"
+            lavoro = "Getting audio \(i + 1) of \(items.count)…"
             guard let v = try? await item.loadTransferable(type: FileVideo.self) else { falliti += 1; continue }
             defer { try? FileManager.default.removeItem(at: v.url) }
             let a = AVURLAsset(url: v.url)
             guard let tracce = try? await a.loadTracks(withMediaType: .audio), !tracce.isEmpty else { falliti += 1; continue }
             if let f = try? Archivio.importa(v.url) {
-                progetto.musiche.append(Musica(file: f, nome: "Audio video \(progetto.musiche.count + 1)"))
+                progetto.musiche.append(Musica(file: f, nome: "Video audio \(progetto.musiche.count + 1)"))
             } else { falliti += 1 }
         }
         lavoro = nil
         Archivio.salva(progetto)
         aggiornaSequenza(ritardo: 0)
-        if falliti > 0 { messaggio = falliti == items.count ? "Nei video scelti non c'è audio (o non riesco a leggerli)." : "\(falliti) video senza audio sono stati saltati." }
+        if falliti > 0 { messaggio = falliti == items.count ? "The chosen videos have no audio (or I can't read them)." : "\(falliti) videos without audio were skipped." }
     }
 
     /// Audio da un file video già sul telefono (Libreria scelta dal monitor): diventa una traccia musicale.
@@ -1049,7 +1049,7 @@ final class Studio: ObservableObject {
         guard let i = progetto.musiche.firstIndex(where: { $0.id == id }), i < posizioniMusica.count else { return }
         let pos = posizioniMusica[i]
         let t = tempoSequenza - pos.inizio
-        guard t > 0.1, t < pos.durata - 0.1 else { messaggio = "Porta la testina dentro questa traccia audio per dividerla."; return }
+        guard t > 0.1, t < pos.durata - 0.1 else { messaggio = "Move the playhead inside this audio track to split it."; return }
         var prima = progetto.musiche[i], seconda = progetto.musiche[i]
         let taglio = prima.inizio + t
         seconda.id = UUID()
@@ -1072,7 +1072,7 @@ final class Studio: ObservableObject {
     func analizzaReframe() async {
         guard let c = clipCorrente, c.video else { return }
         pausaSequenza()
-        lavoro = "Cerco il soggetto…"
+        lavoro = "Looking for the subject…"
         defer { lavoro = nil }
         let m = c.taglio
         let url = Archivio.url("Media", c.file)
@@ -1081,14 +1081,14 @@ final class Studio: ObservableObject {
             let punti = try await Reframe.analizza(url: url, da: m.inizio, a: min(m.fine ?? d, d)) { [weak self] p in
                 Task { @MainActor in self?.lavoro = "Reframe… \(Int(p * 100))%" }
             }
-            guard !punti.isEmpty else { messaggio = "Non riesco ad analizzare la clip."; return }
+            guard !punti.isEmpty else { messaggio = "Can't analyze the clip."; return }
             var n = montaggioCorrente
             n.reframe = punti
             n.seguiSoggetto = true
             montaggioCorrente = n
             anteprimaVerticale = true
         } catch {
-            messaggio = "Reframe non riuscito: \(error.localizedDescription)"
+            messaggio = "Reframe failed: \(error.localizedDescription)"
         }
     }
 
@@ -1096,14 +1096,14 @@ final class Studio: ObservableObject {
 
     /// Lingua del parlato (preimpostata su quella dell'iPhone, se c'è nell'elenco).
     @Published var linguaSottotitoli: String = {
-        let c = Locale.current.language.languageCode?.identifier ?? "it"
+        let c = Locale.current.language.languageCode?.identifier ?? "en"
         return Trascrizione.lingue.first { $0.codice.hasPrefix(c) }?.codice ?? "it-IT"
     }()
 
     func generaSottotitoli() async {
         guard let c = clipCorrente, c.video else { return }
         pausaSequenza()
-        lavoro = "Ascolto il parlato…"
+        lavoro = "Listening to the speech…"
         defer { lavoro = nil }
         let m = c.taglio
         let url = Archivio.url("Media", c.file)
@@ -1114,9 +1114,9 @@ final class Studio: ObservableObject {
             n.sottotitoli = righe
             n.mostraSottotitoli = true
             montaggioCorrente = n
-            messaggio = "\(righe.count) righe di sottotitoli create" + (sulTelefono ? "." : " (con il server di Apple: questa lingua non è disponibile offline su questo iPhone).")
+            messaggio = "\(righe.count) caption lines created" + (sulTelefono ? "." : " (using Apple's server: this language is not available offline on this iPhone).")
         } catch {
-            messaggio = "Sottotitoli non riusciti: \(error.localizedDescription)"
+            messaggio = "Captions failed: \(error.localizedDescription)"
         }
     }
 
@@ -1124,7 +1124,7 @@ final class Studio: ObservableObject {
     func stabilizzaClip() async {
         guard let c = clipCorrente, c.video else { return }
         pausaSequenza()
-        lavoro = "Analizzo il movimento…"
+        lavoro = "Analyzing the motion…"
         defer { lavoro = nil }
         let m = c.taglio
         let url = Archivio.url("Media", c.file)
@@ -1132,15 +1132,15 @@ final class Studio: ObservableObject {
             let d = try await AVURLAsset(url: url).load(.duration).seconds
             // si salva il percorso della camera (forza e treppiede si applicano dopo, senza rifare l'analisi)
             let percorso = try await Stabilizzatore.percorso(url: url, da: m.inizio, a: min(m.fine ?? d, d)) { [weak self] p in
-                Task { @MainActor in self?.lavoro = "Stabilizzo… \(Int(p * 100))%" }
+                Task { @MainActor in self?.lavoro = "Stabilizing… \(Int(p * 100))%" }
             }
-            guard percorso.count > 2 else { messaggio = "Clip troppo corta da stabilizzare."; return }
+            guard percorso.count > 2 else { messaggio = "Clip too short to stabilize."; return }
             var nuovo = montaggioCorrente
             nuovo.percorsoStab = percorso
             nuovo.stabilizza = true
             montaggioCorrente = nuovo
         } catch {
-            messaggio = "Stabilizzazione non riuscita: \(error.localizedDescription)"
+            messaggio = "Stabilization failed: \(error.localizedDescription)"
         }
     }
 
@@ -1150,27 +1150,27 @@ final class Studio: ObservableObject {
         pausaSequenza()
         fermaVideo()
         salvaNodiNellaClip()
-        lavoro = "Preparo il montaggio…"
+        lavoro = "Preparing the edit…"
         defer { lavoro = nil }
         do {
             let piano = try await Sequenza.costruisci(progetto, misura: f.misura, riempi: riempi, lut: Studio.lutFinale)
             let url = FileManager.default.temporaryDirectory.appendingPathComponent("Colorista-montaggio-\(Int(Date().timeIntervalSince1970)).mp4")
             let preset = f.hevc ? AVAssetExportPresetHEVCHighestQuality : AVAssetExportPresetHighestQuality
-            guard let s = AVAssetExportSession(asset: piano.composizione, presetName: preset) else { messaggio = "Esportazione non disponibile."; return }
+            guard let s = AVAssetExportSession(asset: piano.composizione, presetName: preset) else { messaggio = "Export not available."; return }
             s.videoComposition = piano.video
             s.audioMix = piano.audio
             s.audioTimePitchAlgorithm = .spectral
-            lavoro = "Esporto il montaggio (\(f.rawValue))…"
+            lavoro = "Exporting the edit (\(f.rawValue))…"
             try await s.export(to: url, as: .mp4)
-            lavoro = "Salvo nel Rullino…"
+            lavoro = "Saving to the Camera Roll…"
             try await PHPhotoLibrary.shared().performChanges {
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
             }
             try? FileManager.default.removeItem(at: url)
             let m = piano.contesto.misura
-            messaggio = "Montaggio salvato nel Rullino (\(Int(m.width))×\(Int(m.height)), \(String(format: "%.1f", piano.durata)) s)."
+            messaggio = "Edit saved to the Camera Roll (\(Int(m.width))×\(Int(m.height)), \(String(format: "%.1f", piano.durata)) s)."
         } catch {
-            messaggio = "Esportazione del montaggio non riuscita: \(error.localizedDescription)"
+            messaggio = "Exporting the edit failed: \(error.localizedDescription)"
         }
     }
 
@@ -1197,7 +1197,7 @@ final class Studio: ObservableObject {
         selezionato = nodi[0].id
         caricando = false
         if let id = progetto.clipAttiva ?? progetto.clips.first?.id { await apriClip(id) }
-        else { mostraFoto(TestChart.immagine(), nome: "Immagine di prova") }
+        else { mostraFoto(TestChart.immagine(), nome: "Test image") }
         azzeraCronologia()
         tempoSequenza = 0
         if !salvaPrecedente {
@@ -1216,12 +1216,12 @@ final class Studio: ObservableObject {
     func nuovoProgetto(nome: String, salvaPrecedente: Bool = true) async {
         var p = Progetto()
         let n = nome.trimmingCharacters(in: .whitespaces)
-        p.nome = n.isEmpty ? "Progetto \(progettiSalvati.count + (progetto.vuoto || !salvaPrecedente ? 1 : 2))" : n
+        p.nome = n.isEmpty ? "Project \(progettiSalvati.count + (progetto.vuoto || !salvaPrecedente ? 1 : 2))" : n
         await passaA(p, salvaPrecedente: salvaPrecedente)
     }
 
     func apriProgetto(_ id: UUID) async {
-        guard let p = Archivio.caricaArchiviato(id) else { messaggio = "Non riesco ad aprire il progetto."; return }
+        guard let p = Archivio.caricaArchiviato(id) else { messaggio = "Can't open the project."; return }
         Archivio.rimuoviArchiviato(id)
         await passaA(p)
     }
@@ -1281,7 +1281,7 @@ final class Studio: ObservableObject {
         guard let i = progetto.clips.firstIndex(where: { $0.id == id }) else { return }
         var c = progetto.clips[i]
         c.id = UUID()
-        c.nome += " (copia)"
+        c.nome += " (copy)"
         c.nodi = c.nodi.map(\.copia)
         c.versioni = []
         progetto.clips.insert(c, at: i + 1)
@@ -1312,14 +1312,14 @@ final class Studio: ObservableObject {
         for i in progetto.clips.indices { progetto.clips[i].nodi = a.map(\.copia) }
         if let i = progetto.clips.firstIndex(where: { $0.id == clipAttiva }) { caricando = true; nodi = progetto.clips[i].nodi; selezionato = nodi[0].id; caricando = false; aggiorna() }
         Archivio.salva(progetto)
-        messaggio = "Correzione applicata a \(progetto.clips.count) clip."
+        messaggio = "Grade applied to \(progetto.clips.count) clips."
     }
 
     // MARK: versioni
 
     func salvaVersione() {
-        guard let i = progetto.clips.firstIndex(where: { $0.id == clipAttiva }) else { messaggio = "Le versioni si salvano su una clip del progetto: importa prima una foto o un video."; return }
-        progetto.clips[i].versioni.append(Versione(nome: "Versione \(progetto.clips[i].versioni.count + 1)", nodi: nodi))
+        guard let i = progetto.clips.firstIndex(where: { $0.id == clipAttiva }) else { messaggio = "Versions are saved on a project clip: import a photo or a video first."; return }
+        progetto.clips[i].versioni.append(Versione(nome: "Version \(progetto.clips[i].versioni.count + 1)", nodi: nodi))
         Archivio.salva(progetto)
     }
 
@@ -1375,7 +1375,7 @@ final class Studio: ObservableObject {
         let a = AVURLAsset(url: url)
         do {
             let d = try await a.load(.duration)
-            guard let traccia = try await a.loadTracks(withMediaType: .video).first else { messaggio = "Nel file non c'è video."; return }
+            guard let traccia = try await a.loadTracks(withMediaType: .video).first else { messaggio = "The file has no video."; return }
             let size = try await traccia.load(.naturalSize)
             let fps = try await traccia.load(.nominalFrameRate)
             asset = a
@@ -1396,7 +1396,7 @@ final class Studio: ObservableObject {
             dimensioni = "\(Int(abs(size.width)))×\(Int(abs(size.height))) · \(String(format: "%.0f", fps)) fps · \(String(format: "%.1f", durata)) s"
             await fotogramma(0)
         } catch {
-            messaggio = "Non riesco ad aprire il video: \(error.localizedDescription)"
+            messaggio = "Can't open the video: \(error.localizedDescription)"
         }
     }
 
@@ -1446,7 +1446,7 @@ final class Studio: ObservableObject {
             inRiproduzione = true
             player.play()
         } catch {
-            messaggio = "Riproduzione non riuscita: \(error.localizedDescription)"
+            messaggio = "Playback failed: \(error.localizedDescription)"
         }
     }
 
@@ -1498,7 +1498,7 @@ final class Studio: ObservableObject {
                 guard let k = nodi.firstIndex(where: { $0.id == idNodo }) else { return }
                 let f = quale == 0 ? nodi[k].finestra : nodi[k].finestreExtra[quale - 1]
                 let p0 = Finestra.punto(f.traccia, t0) ?? PuntoTraccia(tempo: t0, centro: f.centro)
-                let nomeVerso = verso == .avanti ? "in avanti" : "all'indietro"
+                let nomeVerso = verso == .avanti ? "forward" : "backward"
                 lavoro = "Tracking \(nomeVerso)…"
                 let r = try await Tracker.traccia(asset: a, da: t0, verso: verso, centro: p0.centro,
                                                   raggio: f.tipo == .cerchio ? f.raggio * p0.scala : 0.12,
@@ -1527,18 +1527,18 @@ final class Studio: ObservableObject {
                 perso = perso || r.perso
             }
         } catch {
-            messaggio = "Tracking non riuscito: \(error.localizedDescription)"
+            messaggio = "Tracking failed: \(error.localizedDescription)"
         }
         // la testina va dove si è fermato il tracker: si vede subito se la finestra è rimasta sull'oggetto
         if arrivo != t0 { await fotogramma(arrivo) } else { aggiorna() }
         if inter.fermo {
-            messaggio = "Tracking fermato: \(fotogrammi) fotogrammi tracciati."
+            messaggio = "Tracking stopped: \(fotogrammi) frames tracked."
         } else if perso {
-            messaggio = "Il tracker ha perso l'oggetto dopo \(fotogrammi) fotogrammi. Rimetti la finestra sull'oggetto e riparti da lì."
+            messaggio = "The tracker lost the object after \(fotogrammi) frames. Put the window back on the object and start again from there."
         } else if !unoSolo && fotogrammi > 0 {
-            messaggio = "Tracciati \(fotogrammi) fotogrammi."
+            messaggio = "Tracked \(fotogrammi) frames."
         } else if fotogrammi == 0 {
-            messaggio = "Il tracker non ha trovato niente da seguire."
+            messaggio = "The tracker found nothing to follow."
         }
     }
 
@@ -1564,15 +1564,15 @@ final class Studio: ObservableObject {
         var perso = false
         do {
             for verso in [Tracker.Verso.indietro, .avanti] where !inter.fermo {
-                let nome = verso == .avanti ? "in avanti" : "all'indietro"
-                lavoro = "Cerco la faccia…"
+                let nome = verso == .avanti ? "forward" : "backward"
+                lavoro = "Looking for the face…"
                 let r = try await Tracker.traccia(asset: a, da: t0, verso: verso, centro: vicino ?? SIMD2(0.5, 0.5), raggio: 0.1,
                                                   opzioni: opzioni, interruttore: inter) { [weak self] p in
-                    Task { @MainActor in if self?.tracciando == true { self?.lavoro = "Seguo la faccia \(nome)… \(Int(p * 100))%" } }
+                    Task { @MainActor in if self?.tracciando == true { self?.lavoro = "Tracking face \(nome)… \(Int(p * 100))%" } }
                 }
                 guard let v = r.volto else {
                     if creata, nodi.firstIndex(where: { $0.id == idNodo }) == indice { togliFinestra() }
-                    messaggio = "Non trovo una faccia in questo fotogramma. Porta la testina dove la faccia si vede bene (di fronte) e riprova."
+                    messaggio = "No face found in this frame. Move the playhead to where the face is clearly visible (facing the camera) and try again."
                     return
                 }
                 partenza = v
@@ -1580,7 +1580,7 @@ final class Studio: ObservableObject {
                 perso = perso || r.perso
             }
         } catch {
-            messaggio = "Segui volto non riuscito: \(error.localizedDescription)"
+            messaggio = "Track face failed: \(error.localizedDescription)"
             return
         }
         guard let v = partenza, let k = nodi.firstIndex(where: { $0.id == idNodo }) else { return }
@@ -1595,9 +1595,9 @@ final class Studio: ObservableObject {
         aggiorna()
         if let primo = f.traccia.first, let ultimo = f.traccia.last {
             let durata = String(format: "%.1f", ultimo.tempo - primo.tempo)
-            if inter.fermo { messaggio = "Fermato: faccia seguita per \(durata) s." }
-            else if perso { messaggio = "Faccia seguita per \(durata) s, poi si è persa. Porta la testina dove si rivede e premi di nuovo Segui volto, oppure usa i pulsanti del tracker." }
-            else { messaggio = "Faccia seguita per \(durata) s (\(f.traccia.count) fotogrammi)." }
+            if inter.fermo { messaggio = "Stopped: face tracked for \(durata) s." }
+            else if perso { messaggio = "Face tracked for \(durata) s, then lost. Move the playhead to where it's visible again and press Track face again, or use the tracker buttons." }
+            else { messaggio = "Face tracked for \(durata) s (\(f.traccia.count) frames)." }
         }
     }
 
@@ -1690,7 +1690,7 @@ final class Studio: ObservableObject {
         guard asset != nil else { return }
         fermaVideo()
         pausaSequenza()
-        lavoro = "Preparo il video…"
+        lavoro = "Preparing the video…"
         defer { lavoro = nil }
         do {
             guard let piano = try await pianoSoloClip(misura: nil, riempi: false) else { return }
@@ -1698,25 +1698,25 @@ final class Studio: ObservableObject {
             switch formato {
             case .hevc:
                 guard let s = AVAssetExportSession(asset: piano.composizione, presetName: AVAssetExportPresetHEVCHighestQuality) else {
-                    messaggio = "Esportazione HEVC non disponibile."; return
+                    messaggio = "HEVC export not available."; return
                 }
                 s.videoComposition = piano.video
                 s.audioMix = piano.audio
-                lavoro = "Esporto in HEVC…"
+                lavoro = "Exporting to HEVC…"
                 try await s.export(to: url, as: .mov)
             case .prores:
                 try await Esportazione.prores(asset: piano.composizione, composizione: piano.video, verso: url) { [weak self] p in
-                    Task { @MainActor in self?.lavoro = "Esporto in ProRes… \(Int(p * 100))%" }
+                    Task { @MainActor in self?.lavoro = "Exporting to ProRes… \(Int(p * 100))%" }
                 }
             }
-            lavoro = "Salvo nel Rullino…"
+            lavoro = "Saving to the Camera Roll…"
             try await PHPhotoLibrary.shared().performChanges {
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
             }
             try? FileManager.default.removeItem(at: url)
-            messaggio = "Video salvato nel Rullino (\(formato.rawValue))."
+            messaggio = "Video saved to the Camera Roll (\(formato.rawValue))."
         } catch {
-            messaggio = "Esportazione non riuscita: \(error.localizedDescription)"
+            messaggio = "Export failed: \(error.localizedDescription)"
         }
         await fotogramma(tempo)
     }
@@ -1726,26 +1726,26 @@ final class Studio: ObservableObject {
         guard asset != nil else { return }
         fermaVideo()
         pausaSequenza()
-        lavoro = "Preparo il video per \(f.rawValue)…"
+        lavoro = "Preparing the video for \(f.rawValue)…"
         defer { lavoro = nil }
         do {
             guard let piano = try await pianoSoloClip(misura: f.misura, riempi: f == .originale ? false : riempi) else { return }
             let uscita = piano.contesto.misura
             let url = FileManager.default.temporaryDirectory.appendingPathComponent("Colorista-\(f.id)-\(Int(Date().timeIntervalSince1970)).mp4")
             let preset = f.hevc ? AVAssetExportPresetHEVCHighestQuality : AVAssetExportPresetHighestQuality
-            guard let s = AVAssetExportSession(asset: piano.composizione, presetName: preset) else { messaggio = "Esportazione non disponibile."; return }
+            guard let s = AVAssetExportSession(asset: piano.composizione, presetName: preset) else { messaggio = "Export not available."; return }
             s.videoComposition = piano.video
             s.audioMix = piano.audio
-            lavoro = "Esporto per \(f.rawValue)…"
+            lavoro = "Exporting for \(f.rawValue)…"
             try await s.export(to: url, as: .mp4)
-            lavoro = "Salvo nel Rullino…"
+            lavoro = "Saving to the Camera Roll…"
             try await PHPhotoLibrary.shared().performChanges {
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
             }
             try? FileManager.default.removeItem(at: url)
-            messaggio = "Video per \(f.rawValue) salvato nel Rullino (\(Int(uscita.width))×\(Int(uscita.height)))."
+            messaggio = "Video for \(f.rawValue) saved to the Camera Roll (\(Int(uscita.width))×\(Int(uscita.height)))."
         } catch {
-            messaggio = "Esportazione non riuscita: \(error.localizedDescription)"
+            messaggio = "Export failed: \(error.localizedDescription)"
         }
         await fotogramma(tempo)
     }
@@ -1930,14 +1930,14 @@ extension Studio {
         let pos = posizioniClip
         switch (s.cosa, s.modo) {
         case (.clip, _):
-            guard let id = clipAttiva, let i = progetto.clips.firstIndex(where: { $0.id == id }) else { messaggio = "Nessuna clip aperta."; return }
+            guard let id = clipAttiva, let i = progetto.clips.firstIndex(where: { $0.id == id }) else { messaggio = "No clip open."; return }
             aggiungi(s.nomeFile, id, i < pos.count ? pos[i].durata : 0)
         case (.montaggio, .individuali):
             for (i, c) in progetto.clips.enumerated() {
                 aggiungi("\(s.nomeFile)_\((c.nome as NSString).deletingPathExtension)", c.id, i < pos.count ? pos[i].durata : 0)
             }
         case (.montaggio, .singolo):
-            guard !progetto.clips.isEmpty else { messaggio = "La timeline è vuota."; return }
+            guard !progetto.clips.isEmpty else { messaggio = "The timeline is empty."; return }
             aggiungi(s.nomeFile, nil, durataMontaggio)
         }
     }
@@ -1966,7 +1966,7 @@ extension Studio {
         let daFare = codaRender.filter { $0.stato == .attesa || CodaRenderMonitor.errore($0.stato) }.map(\.id)
         var riusciti = 0
         for id in daFare where await eseguiRender(id) { riusciti += 1 }
-        messaggio = "Render completato: \(riusciti) di \(daFare.count)."
+        messaggio = "Render complete: \(riusciti) of \(daFare.count)."
         await fotogramma(tempo)
     }
 
@@ -1978,7 +1978,7 @@ extension Studio {
         guard let l = codaRender.first(where: { $0.id == id }) else { return false }
         let s = l.impostazioni
         statoRender(id, .inCorso(0))
-        lavoro = "Render lavoro \(l.numero)…"
+        lavoro = "Rendering job \(l.numero)…"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(l.nome)-\(Int(Date().timeIntervalSince1970)).\(s.estensione)")
         do {
             var p = progetto
@@ -2022,7 +2022,7 @@ extension Studio {
             let mb = Double((try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0) / 1_000_000
             if let cid = s.cartella, let c = CartelleCollegate.condivise.tutte.first(where: { $0.id == cid }) {
                 // su una chiavetta o cartella collegata
-                lavoro = "Copio su \(c.nome)…"
+                lavoro = "Copying to \(c.nome)…"
                 guard let base = CartelleCollegate.condivise.apri(c) else { throw CocoaError(.fileNoSuchFile) }
                 defer { base.stopAccessingSecurityScopedResource() }
                 var dest = base.appendingPathComponent("\(l.nome).\(s.estensione)")
@@ -2030,7 +2030,7 @@ extension Studio {
                 while FileManager.default.fileExists(atPath: dest.path) { dest = base.appendingPathComponent("\(l.nome) \(n).\(s.estensione)"); n += 1 }
                 try FileManager.default.copyItem(at: url, to: dest)
             } else {
-                lavoro = "Salvo nel Rullino…"
+                lavoro = "Saving to the Camera Roll…"
                 try await PHPhotoLibrary.shared().performChanges {
                     PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
                 }
@@ -2054,7 +2054,7 @@ extension Studio {
         let pos = posizioniClip
         let t = tempoSequenza
         guard let i = pos.firstIndex(where: { t > $0.inizio + 0.05 && t < $0.inizio + $0.durata - 0.05 }) else {
-            messaggio = "Porta la testina dentro una clip per rifilarla."; return
+            messaggio = "Move the playhead inside a clip to trim it."; return
         }
         let id = progetto.clips[i].id
         let vuoto = progetto.clips[i].taglio.vuotoPrima

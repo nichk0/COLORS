@@ -29,7 +29,7 @@ final class CartelleCollegate: ObservableObject {
         let ok = url.startAccessingSecurityScopedResource()
         defer { if ok { url.stopAccessingSecurityScopedResource() } }
         guard let s = try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil) else {
-            Studio.condiviso.messaggio = "Non riesco a ricordare questa cartella."; return
+            Studio.condiviso.messaggio = "Can't remember this folder."; return
         }
         cartelle.removeAll { $0.nome == url.lastPathComponent }
         cartelle.append(CartellaCollegata(nome: url.lastPathComponent, segnalibro: s))
@@ -40,7 +40,7 @@ final class CartelleCollegate: ObservableObject {
     let suiPhone: CartellaCollegata? = {
         let doc = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         guard let s = try? doc.bookmarkData() else { return nil }
-        return CartellaCollegata(id: UUID(uuidString: "00000000-0000-0000-0000-00000000C010")!, nome: "Sul mio iPhone › Colors", segnalibro: s)
+        return CartellaCollegata(id: UUID(uuidString: "00000000-0000-0000-0000-00000000C010")!, nome: "On My iPhone › Colors", segnalibro: s)
     }()
 
     /// Tutte quelle da mostrare: prima «Sul mio iPhone › Colors», poi quelle collegate.
@@ -119,7 +119,7 @@ struct EsploraFileMonitor: View {
         VStack(alignment: .leading, spacing: 6) {
             // dove siamo
             HStack(spacing: 4) {
-                voceBarra("Cartelle", "externaldrive") { radice = nil; percorso = []; leggi() }
+                voceBarra("Folders", "externaldrive") { radice = nil; percorso = []; leggi() }
                 if let r = radice {
                     Image(systemName: "chevron.right").font(.system(size: 9)).foregroundStyle(Tema.testo2)
                     voceBarra(r.nome, "folder") { percorso = []; leggi() }
@@ -137,14 +137,14 @@ struct EsploraFileMonitor: View {
                         ForEach(cartelle.tutte) { c in
                             riga(icona: c.id == cartelle.suiPhone?.id ? "iphone" : "externaldrive.fill", nome: c.nome, colore: Tema.accento, id: "cart." + c.id.uuidString,
                                  clic: { radice = c; percorso = []; leggi() },
-                                 destro: { MenuMonitor.condiviso.apri([VoceMenuMonitor(titolo: "Scollega «\(c.nome)»", icona: "eject", distruttiva: true) { cartelle.togli(c.id) }]) })
+                                 destro: { MenuMonitor.condiviso.apri([VoceMenuMonitor(titolo: "Disconnect «\(c.nome)»", icona: "eject", distruttiva: true) { cartelle.togli(c.id) }]) })
                         }
-                        riga(icona: "plus.circle", nome: "Collega una cartella o una chiavetta… (si sceglie una volta sul telefono)", colore: Color(white: 0.75), id: "cart.aggiungi",
+                        riga(icona: "plus.circle", nome: "Link a folder or a drive… (chosen once on the phone)", colore: Color(white: 0.75), id: "cart.aggiungi",
                              clic: { studio.richiestaCartella = true }, destro: nil)
-                        Text("iOS mostra la sua finestra dei file solo sul telefono: lì scegli una volta la chiavetta, una cartella di «Sul mio iPhone» o di iCloud Drive, poi la sfogli da qui.")
+                        Text("iOS shows its file picker only on the phone: pick the drive, a folder in «On My iPhone» or in iCloud Drive there once, then browse it from here.")
                             .font(.system(size: 10)).foregroundStyle(Tema.testo2).padding(.top, 4)
                     } else if voci.isEmpty {
-                        Text("Cartella vuota, o la chiavetta non è collegata.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(8)
+                        Text("Empty folder, or the drive is not connected.").font(.system(size: 12)).foregroundStyle(Tema.testo2).padding(8)
                     } else {
                         ForEach(voci) { v in
                             riga(icona: icona(v.tipo), nome: v.nome, colore: v.tipo == .cartella ? Tema.accento : Color(white: 0.8), id: "file." + v.id,
@@ -216,13 +216,13 @@ enum FormatoFile {
     static func problema(_ u: URL, video: Bool) async -> String? {
         let e = u.pathExtension.lowercased()
         if e == "braw" {
-            return "«\(u.lastPathComponent)» è Blackmagic RAW: iOS non sa leggerlo (serve il programma di Blackmagic). In Blackmagic Camera scegli Apple ProRes o HEVC (H.265) come codec e importa quei file."
+            return "«\(u.lastPathComponent)» is Blackmagic RAW: iOS can't read it (it needs Blackmagic's software). In Blackmagic Camera choose Apple ProRes or HEVC (H.265) as the codec and import those files."
         }
         let a = AVURLAsset(url: u)
         let leggibile = (try? await a.load(.isPlayable)) ?? false
         let tracce = (try? await a.loadTracks(withMediaType: video ? .video : .audio)) ?? []
         if !leggibile || tracce.isEmpty {
-            return "iOS non sa leggere «\(u.lastPathComponent)» (formato .\(e)). Funzionano: video MOV/MP4 (H.264, HEVC, ProRes) e audio MP3, M4A, AAC, WAV, AIFF, FLAC."
+            return "iOS can't read «\(u.lastPathComponent)» (.\(e) format). Supported: MOV/MP4 video (H.264, HEVC, ProRes) and MP3, M4A, AAC, WAV, AIFF, FLAC audio."
         }
         return nil
     }
@@ -259,7 +259,7 @@ enum DescriviFile {
 
     /// "ProRes 422 HQ · 3840×2160 · 25 fps", "HEVC 10 bit…", "Blackmagic RAW (non leggibile)".
     static func codec(_ u: URL) async -> String {
-        if u.pathExtension.lowercased() == "braw" { return "Blackmagic RAW · non leggibile" }
+        if u.pathExtension.lowercased() == "braw" { return "Blackmagic RAW · not readable" }
         let a = AVURLAsset(url: u)
         if let v = try? await a.loadTracks(withMediaType: .video).first {
             let (desc, misura, fps) = (try? await v.load(.formatDescriptions, .naturalSize, .nominalFrameRate)) ?? ([], .zero, Float(0))
@@ -276,6 +276,6 @@ enum DescriviFile {
             let hz = CMAudioFormatDescriptionGetStreamBasicDescription(f)?.pointee.mSampleRate ?? 0
             return "\(nomi[cc] ?? cc) · \(Int(hz / 1000)) kHz"
         }
-        return "formato non leggibile"
+        return "unreadable format"
     }
 }

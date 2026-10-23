@@ -8,10 +8,10 @@ enum Trascrizione {
         case permesso, linguaNonDisponibile, senzaAudio, niente
         var errorDescription: String? {
             switch self {
-            case .permesso: return "Serve il permesso per il riconoscimento vocale (Impostazioni › Colors)."
-            case .linguaNonDisponibile: return "Il riconoscimento vocale per questa lingua non è disponibile su questo iPhone."
-            case .senzaAudio: return "Nella clip non c'è audio."
-            case .niente: return "Non ho sentito parole da trascrivere."
+            case .permesso: return "Speech recognition permission is needed (Settings › Colors)."
+            case .linguaNonDisponibile: return "Speech recognition for this language is not available on this iPhone."
+            case .senzaAudio: return "The clip has no audio."
+            case .niente: return "I didn't hear any words to transcribe."
             }
         }
     }

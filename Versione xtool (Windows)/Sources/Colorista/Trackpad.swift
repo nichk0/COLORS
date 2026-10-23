@@ -300,8 +300,8 @@ extension Studio {
         // finestra Bentornato aperta: si clicca solo lì
         if benvenutoMonitor, !(trovata?.id.hasPrefix("menu.benvenuto") ?? false) { return }
         if testoMonitor != nil, !(trovata?.id.hasPrefix("menu.testo") ?? false) { return }
-        guard let (idTrovata, z) = trovata else { GestoreMonitor.scrivi("clic su niente in \(Int(p.x)),\(Int(p.y))"); return }
-        if contagocce != .nessuno || idTrovata.contains("contagocce") { GestoreMonitor.scrivi("clic su \(idTrovata)") }
+        guard let (idTrovata, z) = trovata else { GestoreMonitor.scrivi("click on nothing at \(Int(p.x)),\(Int(p.y))"); return }
+        if contagocce != .nessuno || idTrovata.contains("contagocce") { GestoreMonitor.scrivi("click on \(idTrovata)") }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         z.clic?(dentro(z, p))
     }
@@ -444,19 +444,19 @@ struct TrackpadMonitor: View {
                 Button {
                     tastiera.toggle()
                 } label: {
-                    Label("Tastiera", systemImage: "keyboard")
+                    Label("Keyboard", systemImage: "keyboard")
                         .padding(.horizontal, 12).frame(height: 34)
                         .background(Capsule().fill(tastiera ? Tema.accento.opacity(0.2) : Tema.campo))
                         .foregroundStyle(tastiera ? Tema.accento : .white)
                 }
-                Button("Fine") { if let esci { esci() } else { chiudi() } }.font(.headline).foregroundStyle(Tema.accento).padding(.leading, 8)
+                Button("Done") { if let esci { esci() } else { chiudi() } }.font(.headline).foregroundStyle(Tema.accento).padding(.leading, 8)
             }
             if !studio.monitorCollegato {
-                Text("Nessun monitor collegato: collega un monitor o una TV per vedere il puntatore.")
+                Text("No monitor connected: connect a monitor or a TV to see the pointer.")
                     .font(.footnote).foregroundStyle(Tema.accento)
             }
             if mouse.collegato {
-                Text("Mouse collegato: muovilo per spostare il puntatore sul monitor. Clic = clic · tieni premuto e muovi = trascina · rotella = regola ruote e valori.")
+                Text("Mouse connected: move it to move the pointer on the monitor. Click = click · hold and move = drag · wheel = adjust wheels and values.")
                     .font(.footnote).foregroundStyle(Tema.testo2)
             }
             HStack(spacing: 8) {
@@ -466,7 +466,7 @@ struct TrackpadMonitor: View {
             tastiMouse
             tasti
             if tastiera {
-                Text("Spazio o K: play/pausa · J/L o ←/→: un fotogramma · ↑/↓: clip · D: nodo acceso/spento · S: nuovo nodo · Z: annulla · Y: ripeti")
+                Text("Space or K: play/pause · J/L or ←/→: one frame · ↑/↓: clip · D: node on/off · S: new node · Z: undo · Y: redo")
                     .font(.caption2).foregroundStyle(Tema.testo2)
             }
             // campo invisibile: riceve i tasti (della tastiera del telefono o di una tastiera vera)
@@ -528,8 +528,8 @@ struct TrackpadMonitor: View {
             .overlay {
                 VStack(spacing: 6) {
                     Image(systemName: "hand.point.up.left").font(.system(size: 30)).foregroundStyle(Tema.testo2)
-                    Text("Muovi il dito per spostare il puntatore").font(.subheadline)
-                    Text("Tocco o Sinistro = clic · tieni premuto Sinistro e muovi = trascina · Destro = valore di partenza").font(.caption).foregroundStyle(Tema.testo2)
+                    Text("Move your finger to move the pointer").font(.subheadline)
+                    Text("Tap or Left = click · hold Left and move = drag · Right = default value").font(.caption).foregroundStyle(Tema.testo2)
                 }
                 .allowsHitTesting(false)
             }
@@ -539,13 +539,13 @@ struct TrackpadMonitor: View {
             .onContinuousHover { fase in
                 switch fase {
                 case .active(let p):
-                    MouseMonitor.condiviso.segna("puntatore sul telefono")
+                    MouseMonitor.condiviso.segna("pointer on the phone")
                     if let u = ultimoHover, !MouseMonitor.condiviso.muoveDaSolo { studio.muoviPuntatore(CGSize(width: (p.x - u.x) * 2.2, height: (p.y - u.y) * 2.2)) }
                     ultimoHover = p
                 case .ended: ultimoHover = nil
                 }
             }
-            .gesture(RotellaMouse { dx, dy in MouseMonitor.condiviso.segna("rotella sul telefono"); studio.scorriMonitor(dx, dy) })
+            .gesture(RotellaMouse { dx, dy in MouseMonitor.condiviso.segna("wheel on the phone"); studio.scorriMonitor(dx, dy) })
             // tasto destro del mouse sul trackpad (iOS lo manda alla schermata del telefono, non al mouse dell'app)
             .gesture(TastoDestroMouse { studio.destroMonitor() })
             .gesture(SpiaTocchi())
@@ -554,7 +554,7 @@ struct TrackpadMonitor: View {
                     // mouse in uso: il "tocco" è il tasto sinistro; il puntatore lo muove il mouse
                     if mouse.collegato, inizio == nil, !tastoMouse, MouseMonitor.condiviso.inUso {
                         tastoMouse = true
-                        MouseMonitor.condiviso.segna("sinistro dal tocco")
+                        MouseMonitor.condiviso.segna("left from touch")
                         MouseMonitor.condiviso.tasto(true)
                     }
                     if tastoMouse { return }
@@ -591,9 +591,9 @@ struct TrackpadMonitor: View {
                     if tastoMouse { tastoMouse = false; MouseMonitor.condiviso.tasto(false); return }
                     attesa?.cancel()
                     if trascinando == nil, !mosso, !sinistroGiu, let i = inizio, Date().timeIntervalSince(i) < 0.45 {
-                        MouseMonitor.condiviso.segna("clic sul trackpad")
+                        MouseMonitor.condiviso.segna("click on the trackpad")
                         studio.clicMonitor()
-                    } else if mosso { MouseMonitor.condiviso.segna("trascinamento sul trackpad") }
+                    } else if mosso { MouseMonitor.condiviso.segna("drag on the trackpad") }
                     inizio = nil
                     if !sinistroGiu { trascinando = nil }
                 })
@@ -605,13 +605,13 @@ struct TrackpadMonitor: View {
             Tema.sfondo
             VStack(spacing: 10) {
                 Image(systemName: "computermouse").font(.system(size: 40)).foregroundStyle(Tema.accento)
-                Text("Mouse collegato").font(.headline)
+                Text("Mouse connected").font(.headline)
                 if mouse.mostraAvvisoAssistiveTouch {
                     AvvisoAssistiveTouch().allowsHitTesting(true)
                 }
-                Text("Usa il mouse sul monitor: sinistro = clic (tieni premuto e muovi = trascina) · destro = menu o valore di partenza · rotella = scorri o regola.")
+                Text("Use the mouse on the monitor: left = click (hold and move = drag) · right = menu or default value · wheel = scroll or adjust.")
                     .font(.footnote).foregroundStyle(Tema.testo2).multilineTextAlignment(.center)
-                Text("Per usare i tasti del telefono scollega il mouse.")
+                Text("To use the phone's buttons disconnect the mouse.")
                     .font(.caption).foregroundStyle(Tema.testo2)
             }
             .padding(30)
@@ -626,20 +626,20 @@ struct TrackpadMonitor: View {
         .onContinuousHover { fase in
             switch fase {
             case .active(let p):
-                MouseMonitor.condiviso.segna("puntatore sul telefono")
+                MouseMonitor.condiviso.segna("pointer on the phone")
                 MouseMonitor.condiviso.portaA(normalizza(p))
             case .ended: break
             }
         }
-        .gesture(RotellaMouse { dx, dy in MouseMonitor.condiviso.segna("rotella sul telefono"); studio.scorriMonitor(dx, dy) })
+        .gesture(RotellaMouse { dx, dy in MouseMonitor.condiviso.segna("wheel on the phone"); studio.scorriMonitor(dx, dy) })
         .gesture(TastoDestroMouse { studio.destroMonitor() })
         .gesture(DragGesture(minimumDistance: 0)
             .onChanged { v in
                 if tastoMouse { MouseMonitor.condiviso.portaA(normalizza(v.location)) }
                 if !tastoMouse {
                     tastoMouse = true
-                    GestoreMonitor.scrivi("clic sinistro sul telefono in \(Int(v.startLocation.x)),\(Int(v.startLocation.y)) · puntatore monitor \(studio.puntatore.map { "\(Int($0.x)),\(Int($0.y))" } ?? "-")")
-                    MouseMonitor.condiviso.segna("sinistro dal tocco")
+                    GestoreMonitor.scrivi("left click on the phone at \(Int(v.startLocation.x)),\(Int(v.startLocation.y)) · monitor pointer \(studio.puntatore.map { "\(Int($0.x)),\(Int($0.y))" } ?? "-")")
+                    MouseMonitor.condiviso.segna("left from touch")
                     MouseMonitor.condiviso.tasto(true)
                 }
             }
@@ -660,7 +660,7 @@ struct TrackpadMonitor: View {
     /// Tasto sinistro (tienilo premuto e muovi il dito sul trackpad per trascinare) e tasto destro.
     private var tastiMouse: some View {
         HStack(spacing: 8) {
-            Text("Sinistro")
+            Text("Left")
                 .font(.system(size: 13, weight: .semibold))
                 .frame(maxWidth: .infinity).frame(height: 50)
                 .background(RoundedRectangle(cornerRadius: 12).fill(sinistroGiu ? Tema.accento.opacity(0.35) : Tema.campo))
@@ -673,14 +673,14 @@ struct TrackpadMonitor: View {
                         if !trascinatoColSinistro { studio.clicMonitor() }
                         sinistroGiu = false; trascinando = nil
                     })
-                .accessibilityLabel("Tasto sinistro")
-            Text("Destro")
+                .accessibilityLabel("Left button")
+            Text("Right")
                 .font(.system(size: 13, weight: .semibold))
                 .frame(maxWidth: .infinity).frame(height: 50)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Tema.campo))
                 .contentShape(Rectangle())
                 .onTapGesture { studio.destroMonitor() }
-                .accessibilityLabel("Tasto destro")
+                .accessibilityLabel("Right button")
         }
     }
 
@@ -710,17 +710,17 @@ struct TrackpadMonitor: View {
                     studio.scorriMonitor(0, dy * 1.5)
                 }
                 .onEnded { _ in ultimaRotella = 0 })
-            .accessibilityLabel("Rotellina")
+            .accessibilityLabel("Scroll wheel")
     }
 
     private var tasti: some View {
         HStack(spacing: 8) {
-            tasto("backward.frame", "Indietro") { studio.passo(-1) }
+            tasto("backward.frame", "Backward") { studio.passo(-1) }
             tasto(studio.inRiproduzione ? "pause.fill" : "play.fill", "Play") { studio.playPausa() }
-            tasto("forward.frame", "Avanti") { studio.passo(1) }
-            tasto("plus.square.on.square", "Nodo") { studio.aggiungi(.correzione) }
+            tasto("forward.frame", "Forward") { studio.passo(1) }
+            tasto("plus.square.on.square", "Node") { studio.aggiungi(.correzione) }
             tasto("power", "On/Off") { studio.nodo.attivo.toggle() }
-            tasto("arrow.uturn.backward", "Annulla") { studio.annulla() }
+            tasto("arrow.uturn.backward", "Cancel") { studio.annulla() }
         }
     }
 
@@ -816,7 +816,7 @@ struct ModalitaDesktop: View {
     static func ruota(orizzontale: Bool) {
         guard let s = UIApplication.shared.connectedScenes.first(where: { $0.session.role == .windowApplication }) as? UIWindowScene else { return }
         for w in s.windows { w.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations(); w.rootViewController?.presentedViewController?.setNeedsUpdateOfSupportedInterfaceOrientations() }
-        s.requestGeometryUpdate(.iOS(interfaceOrientations: orizzontale ? .landscapeRight : .portrait)) { e in print("MONITOR: rotazione non riuscita: \(e.localizedDescription)") }
+        s.requestGeometryUpdate(.iOS(interfaceOrientations: orizzontale ? .landscapeRight : .portrait)) { e in print("MONITOR: rotation failed: \(e.localizedDescription)") }
     }
 }
 
@@ -856,12 +856,12 @@ final class MouseMonitor: ObservableObject {
             MainActor.assumeIsolated { self.collegato = GCMouse.mice().isEmpty == false }
         }
         GCMouse.mice().forEach(collega)
-        GestoreMonitor.scrivi("mouse visti all'avvio: \(GCMouse.mice().count)")
+        GestoreMonitor.scrivi("mice seen at launch: \(GCMouse.mice().count)")
     }
 
     private func collega(_ m: GCMouse) {
         collegato = true
-        GestoreMonitor.scrivi("mouse collegato: \(m.vendorName ?? "?")")
+        GestoreMonitor.scrivi("mouse connected: \(m.vendorName ?? "?")")
         guard let input = m.mouseInput else { return }
         input.mouseMovedHandler = { _, dx, dy in
             DispatchQueue.main.async { MainActor.assumeIsolated { self.accumula(CGFloat(dx), CGFloat(-dy)) } }
@@ -874,7 +874,7 @@ final class MouseMonitor: ObservableObject {
             DispatchQueue.main.async { MainActor.assumeIsolated { self.segna("destro"); self.studio.destroMonitor() } }
         }
         input.scroll.yAxis.valueChangedHandler = { _, v in
-            DispatchQueue.main.async { MainActor.assumeIsolated { self.segna("rotella asse") } }
+            DispatchQueue.main.async { MainActor.assumeIsolated { self.segna("wheel axis") } }
         }
         input.scroll.valueChangedHandler = { _, dx, dy in
             DispatchQueue.main.async { MainActor.assumeIsolated { self.segna("rotella"); self.studio.scorriMonitor(CGFloat(dx) * 4, CGFloat(-dy) * 4) } }
@@ -906,7 +906,7 @@ final class MouseMonitor: ObservableObject {
     func segna(_ tipo: String) {
         guard !visti.contains(tipo) else { return }
         visti.insert(tipo)
-        GestoreMonitor.scrivi("evento mouse: " + tipo)
+        GestoreMonitor.scrivi("mouse event: " + tipo)
     }
 
     /// Ultima volta che il puntatore del telefono ha dato la posizione (allora comanda lui, non gli spostamenti del mouse).
@@ -984,7 +984,7 @@ struct TastoDestroMouse: UIGestureRecognizerRepresentable {
 
     func handleUIGestureRecognizerAction(_ r: UITapGestureRecognizer, context: Context) {
         if r.state == .ended {
-            MouseMonitor.condiviso.segna("destro sul telefono")
+            MouseMonitor.condiviso.segna("right on the phone")
             azione()
         }
     }
@@ -1006,16 +1006,16 @@ struct SpiaTocchi: UIGestureRecognizerRepresentable {
                 let tipo: String
                 switch t.type {
                 case .direct: tipo = "dito"
-                case .indirectPointer: tipo = "puntatore (pulsanti \(event.buttonMask.rawValue))"
+                case .indirectPointer: tipo = "pointer (buttons \(event.buttonMask.rawValue))"
                 case .indirect: tipo = "indiretto"
                 default: tipo = "altro"
                 }
-                MainActor.assumeIsolated { MouseMonitor.condiviso.segna("tocco: " + tipo) }
+                MainActor.assumeIsolated { MouseMonitor.condiviso.segna("touch: " + tipo) }
             }
             state = .failed
         }
         override func shouldReceive(_ event: UIEvent) -> Bool {
-            if event.type == .scroll { MainActor.assumeIsolated { MouseMonitor.condiviso.segna("evento scroll di iOS") } }
+            if event.type == .scroll { MainActor.assumeIsolated { MouseMonitor.condiviso.segna("iOS scroll event") } }
             return super.shouldReceive(event)
         }
     }
@@ -1102,7 +1102,7 @@ final class ControlloreTrackpad: UIHostingController<AnyView> {
         setNeedsUpdateOfScreenEdgesDeferringSystemGestures()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             let bloccato = self?.view.window?.windowScene?.pointerLockState?.isLocked ?? false
-            MainActor.assumeIsolated { GestoreMonitor.scrivi("puntatore bloccato: \(bloccato ? "sì" : "no")") }
+            MainActor.assumeIsolated { GestoreMonitor.scrivi("pointer locked: \(bloccato ? "yes" : "no")") }
         }
     }
 }
@@ -1139,7 +1139,7 @@ struct TastieraTestoMonitor: View {
     var body: some View {
         VStack(spacing: 12) {
             Text(studio.testoMonitor?.titolo ?? "").font(.headline)
-            Text("Scrivi: il testo compare sul monitor").font(.footnote).foregroundStyle(Tema.testo2)
+            Text("Type: the text appears on the monitor").font(.footnote).foregroundStyle(Tema.testo2)
             TextField("", text: Binding(get: { studio.testoMonitor?.testo ?? "" }, set: { studio.testoMonitor?.testo = $0 }))
                 .focused($attivo)
                 .submitLabel(.done)
@@ -1147,7 +1147,7 @@ struct TastieraTestoMonitor: View {
                 .padding(.horizontal, 12).frame(height: 44)
                 .background(RoundedRectangle(cornerRadius: 10).fill(Tema.campo))
             HStack {
-                Button("Annulla") { studio.testoMonitor = nil }
+                Button("Cancel") { studio.testoMonitor = nil }
                 Spacer()
                 Button("OK") { studio.confermaTestoMonitor() }.fontWeight(.bold)
             }
@@ -1166,10 +1166,10 @@ struct TastieraTestoMonitor: View {
 struct AvvisoAssistiveTouch: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label("Accendi AssistiveTouch", systemImage: "hand.point.up.left.fill").font(.subheadline.weight(.bold))
-            Text("Il più veloce: premi 3 volte il tasto laterale. Se non succede niente, impostalo una volta in Impostazioni › Accessibilità › Abbreviazioni accessibilità › AssistiveTouch.")
+            Label("Turn on AssistiveTouch", systemImage: "hand.point.up.left.fill").font(.subheadline.weight(.bold))
+            Text("Fastest: press the side button 3 times. If nothing happens, set it up once in Settings › Accessibility › Accessibility Shortcut › AssistiveTouch.")
                 .font(.caption)
-            Text("Oppure: Impostazioni › Accessibilità › Tocco › AssistiveTouch.").font(.caption)
+            Text("Or: Settings › Accessibility › Touch › AssistiveTouch.").font(.caption)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)

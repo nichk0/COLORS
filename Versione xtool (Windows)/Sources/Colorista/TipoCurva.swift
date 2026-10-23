@@ -39,13 +39,13 @@ enum TipoCurva: String, CaseIterable, Identifiable {
 
     var spiegazione: String {
         switch self {
-        case .custom: return "Tocca per aggiungere un punto e trascinalo. Per toglierlo: toccalo e premi ✕."
-        case .hueHue: return "Cambia una tinta in un'altra (es. verdi più gialli). Scegli un colore qui sotto o col contagocce, poi trascina su/giù il punto centrale."
-        case .hueSat: return "Più o meno saturazione per una tinta (es. cielo più blu)."
-        case .hueLum: return "Più chiara o più scura una tinta (es. cielo più scuro)."
-        case .lumSat: return "Saturazione per luminosità (es. ombre meno sature, look pellicola)."
-        case .satSat: return "Satura di più i colori spenti o calma quelli già saturi."
-        case .satLum: return "Più chiari o più scuri i colori molto saturi (es. scurire i colori accesi)."
+        case .custom: return "Tap to add a point and drag it. To remove it: tap it and press ✕."
+        case .hueHue: return "Changes one hue into another (e.g. greens more yellow). Pick a color below or with the eyedropper, then drag the middle point up/down."
+        case .hueSat: return "More or less saturation for a hue (e.g. bluer sky)."
+        case .hueLum: return "Makes a hue lighter or darker (e.g. darker sky)."
+        case .lumSat: return "Saturation by luminance (e.g. less saturated shadows, film look)."
+        case .satSat: return "Saturates dull colors more or calms already saturated ones."
+        case .satLum: return "Makes very saturated colors lighter or darker (e.g. darken vivid colors)."
         }
     }
 
@@ -53,14 +53,14 @@ enum TipoCurva: String, CaseIterable, Identifiable {
     func etichetta(_ p: SIMD2<Float>, canale: Int = 0) -> String {
         let ingresso: String
         switch asse {
-        case .tinta: ingresso = String(format: "Tinta %.0f°", p.x * 360)
+        case .tinta: ingresso = String(format: "Hue %.0f°", p.x * 360)
         case .luminanza: ingresso = String(format: "Lum %.0f%%", p.x * 100)
         case .saturazione: ingresso = String(format: "Sat %.0f%%", p.x * 100)
         }
         switch self {
         case .custom: return String(format: "%@ %.2f → %.2f", ["Y", "R", "G", "B"][canale], p.x, p.y)
-        case .hueHue: return ingresso + String(format: " → rotazione %+.0f°", p.y * 180)
-        case .hueSat, .lumSat, .satSat: return ingresso + String(format: " → saturazione %+.0f%%", p.y * 100)
+        case .hueHue: return ingresso + String(format: " → rotation %+.0f°", p.y * 180)
+        case .hueSat, .lumSat, .satSat: return ingresso + String(format: " → saturation %+.0f%%", p.y * 100)
         case .hueLum, .satLum: return ingresso + String(format: " → %+.1f stop", p.y * 1.2)
         }
     }

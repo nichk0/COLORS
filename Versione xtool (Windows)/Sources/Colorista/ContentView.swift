@@ -58,7 +58,7 @@ struct ContentView: View {
                         Color.black
                         VistaPlayer(player: studio.playerSequenza)
                         if studio.progetto.clips.isEmpty {
-                            Text("Importa le clip dalla pagina Media").font(.caption).foregroundStyle(Tema.testo2)
+                            Text("Import clips from the Media page").font(.caption).foregroundStyle(Tema.testo2)
                         }
                         if let l = studio.lavoro {
                             VStack(spacing: 8) { ProgressView(); Text(l).font(.caption) }
@@ -131,23 +131,23 @@ struct ContentView: View {
                 if studio.monitorCollegato { studio.benvenutoMonitor = true } else { benvenuto = true }
             }
         }
-        .alert("Bentornato", isPresented: $benvenuto) {
-            Button("Continua «\(studio.progetto.nome)»") {}
-            Button("Nuovo progetto") { chiediSalvataggio = true }
+        .alert("Welcome back", isPresented: $benvenuto) {
+            Button("Continue «\(studio.progetto.nome)»") {}
+            Button("New project") { chiediSalvataggio = true }
         } message: {
-            Text("Vuoi continuare da dove avevi lasciato (\(studio.progetto.clips.count) clip) o iniziare un progetto nuovo?")
+            Text("Do you want to continue where you left off (\(studio.progetto.clips.count) clips) or start a new project?")
         }
-        .alert("Salvare «\(studio.progetto.nome)»?", isPresented: $chiediSalvataggio) {
-            Button("Sì, salva") { nomeNuovoProgetto = ""; chiediNomeProgetto = true }
+        .alert("Save «\(studio.progetto.nome)»?", isPresented: $chiediSalvataggio) {
+            Button("Yes, save") { nomeNuovoProgetto = ""; chiediNomeProgetto = true }
             Button("No", role: .destructive) { Task { await studio.nuovoProgetto(nome: "", salvaPrecedente: false); pagina = .media } }
-            Button("Annulla", role: .cancel) { benvenuto = true }
+            Button("Cancel", role: .cancel) { benvenuto = true }
         } message: {
-            Text("Sì: resta nei Progetti e lo puoi riaprire quando vuoi.\nNo: viene cancellato con le sue clip copiate nell'app e si apre un progetto nuovo vuoto (le foto e i video della tua Libreria non si toccano).")
+            Text("Yes: it stays in Projects and you can reopen it whenever you want.\nNo: it is deleted along with the clips copied into the app and a new empty project opens (the photos and videos in your Library are not touched).")
         }
-        .alert("Nuovo progetto", isPresented: $chiediNomeProgetto) {
-            TextField("Nome", text: $nomeNuovoProgetto)
-            Button("Annulla", role: .cancel) {}
-            Button("Crea") { let n = nomeNuovoProgetto; Task { await studio.nuovoProgetto(nome: n); pagina = .media } }
+        .alert("New project", isPresented: $chiediNomeProgetto) {
+            TextField("Name", text: $nomeNuovoProgetto)
+            Button("Cancel", role: .cancel) {}
+            Button("Create") { let n = nomeNuovoProgetto; Task { await studio.nuovoProgetto(nome: n); pagina = .media } }
         }
         // il monitor esterno evidenzia la palette aperta sul telefono
         .onChange(of: palette) { _, p in studio.paletteMonitor = p }
@@ -263,12 +263,12 @@ struct ContentView: View {
                             altezzaViewer = Double(min(max((altezzaInizio ?? h) + v.translation.height, 120), massimo))
                         }
                         .onEnded { _ in altezzaInizio = nil })
-                    .accessibilityLabel("Grandezza del viewer")
+                    .accessibilityLabel("Viewer size")
                 // comprimi / espandi: nasconde clip e nodi (o la timeline) per vedere meglio il video
                 HStack {
                     Spacer()
                     Button { withAnimation(.easeInOut(duration: 0.2)) { compatto.toggle() } } label: {
-                        Label(compatto ? "Mostra" : "Comprimi", systemImage: compatto ? "rectangle.expand.vertical" : "rectangle.compress.vertical")
+                        Label(compatto ? "Show" : "Collapse", systemImage: compatto ? "rectangle.expand.vertical" : "rectangle.compress.vertical")
                             .font(.system(size: 10, weight: .semibold))
                             .padding(.horizontal, 8).frame(height: 22)
                             .background(Capsule().fill(compatto ? Tema.accento : Tema.campo))
@@ -307,8 +307,8 @@ struct ContentView: View {
         HStack(spacing: 12) {
             Menu {
                 // niente PhotosPicker dentro il Menu: su iOS spesso non si apre. Si apre dal modificatore .photosPicker
-                Button { mostraLibreria = true } label: { Label("Dalla Libreria foto", systemImage: "photo.on.rectangle") }
-                Button { importaSoloLUT = false; mostraFile = true } label: { Label("Da File (anche SSD esterno)", systemImage: "folder") }
+                Button { mostraLibreria = true } label: { Label("From Photo Library", systemImage: "photo.on.rectangle") }
+                Button { importaSoloLUT = false; mostraFile = true } label: { Label("From Files (external SSD too)", systemImage: "folder") }
             } label: {
                 Image(systemName: "photo.badge.plus").font(.system(size: 17))
             }
@@ -322,12 +322,12 @@ struct ContentView: View {
                 Image(systemName: "arrow.uturn.backward").font(.system(size: 17, weight: .semibold))
             }
             .disabled(studio.passato.isEmpty)
-            .accessibilityLabel("Annulla")
+            .accessibilityLabel("Cancel")
             Button { studio.ripeti() } label: {
                 Image(systemName: "arrow.uturn.forward").font(.system(size: 17, weight: .semibold))
             }
             .disabled(studio.futuro.isEmpty)
-            .accessibilityLabel("Ripeti")
+            .accessibilityLabel("Redo")
             Menu {
                 Picker("Scope", selection: $studio.scope) {
                     ForEach(TipoScope.allCases) { Text($0.rawValue).tag($0) }
@@ -340,7 +340,7 @@ struct ContentView: View {
                 Image(systemName: "display").font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(studio.monitorCollegato ? Tema.accento : .white)
             }
-            .accessibilityLabel("Monitor esterno")
+            .accessibilityLabel("External monitor")
             etichetta("FC", attiva: studio.falsoColore) { studio.falsoColore.toggle() }
             etichetta("BYPASS", attiva: bypass) { bypass.toggle() }
         }
@@ -393,7 +393,7 @@ struct ContentView: View {
                         .foregroundStyle(.white)
                 }
                 .padding(8)
-                .accessibilityLabel("Schermo intero")
+                .accessibilityLabel("Full screen")
             }
             .gesture(DragGesture(minimumDistance: 0).onChanged { v in
                 guard let img = studio.risultato else { return }
@@ -449,7 +449,7 @@ struct ContentView: View {
             }
         }
         if studio.contagocce != .nessuno {
-            Text("Contagocce attivo").font(.caption2.bold())
+            Text("Eyedropper active").font(.caption2.bold())
                 .padding(4).background(Capsule().fill(Tema.accento)).foregroundStyle(.black)
                 .frame(maxHeight: .infinity, alignment: .top).padding(.top, 6)
         }
@@ -515,7 +515,7 @@ struct ContentView: View {
             Button { studio.alternaKeyframe() } label: {
                 Image(systemName: studio.keyframeQui ? "diamond.fill" : "diamond").foregroundStyle(studio.keyframeQui ? Tema.accento : .white)
             }
-            .accessibilityLabel("Keyframe del nodo")
+            .accessibilityLabel("Node keyframes")
             Button { Task { await studio.vaiAlKeyframe(true) } } label: { Image(systemName: "chevron.right").font(.caption) }
                 .disabled(studio.tempiKeyframe.isEmpty)
             ZStack {
@@ -566,16 +566,16 @@ struct ContentView: View {
                     .overlay(RoundedRectangle(cornerRadius: 3).stroke(attiva ? Tema.accento : .clear, lineWidth: 2))
                     .onTapGesture { Task { await studio.apriClip(c.id) } }
                     .contextMenu {
-                        Button { studio.copiaCorrezione(c.id) } label: { Label("Copia correzione", systemImage: "doc.on.doc") }
+                        Button { studio.copiaCorrezione(c.id) } label: { Label("Copy grade", systemImage: "doc.on.doc") }
                         if studio.appunti != nil {
-                            Button { Task { await studio.incollaCorrezione(su: c.id) } } label: { Label("Incolla correzione", systemImage: "doc.on.clipboard") }
-                            Button { studio.incollaSuTutte() } label: { Label("Incolla su tutte le clip", systemImage: "square.on.square") }
+                            Button { Task { await studio.incollaCorrezione(su: c.id) } } label: { Label("Paste grade", systemImage: "doc.on.clipboard") }
+                            Button { studio.incollaSuTutte() } label: { Label("Paste to all clips", systemImage: "square.on.square") }
                         }
-                        Button(role: .destructive) { Task { await studio.eliminaClip(c.id) } } label: { Label("Togli dal progetto", systemImage: "trash") }
+                        Button(role: .destructive) { Task { await studio.eliminaClip(c.id) } } label: { Label("Remove from project", systemImage: "trash") }
                     }
                 }
                 if studio.progetto.clips.isEmpty {
-                    Text("Nessuna clip: importa foto o video con il pulsante in alto a sinistra.")
+                    Text("No clips: import photos or videos with the button at the top left.")
                         .font(.caption2).foregroundStyle(Tema.testo2)
                 }
             }
@@ -625,7 +625,7 @@ struct ContentView: View {
                         .background(RoundedRectangle(cornerRadius: 6).fill(n.modo == .serie ? Tema.campo : Tema.accento.opacity(0.25)))
                         .foregroundStyle(n.modo == .serie ? .white : Tema.accento)
                 }
-                .accessibilityLabel("Collegamento del nodo")
+                .accessibilityLabel("Node connection")
             }
             bottoneNodo("arrow.left", nil) { studio.sposta(n.id, di: -1) }.disabled(i == 0)
             bottoneNodo("arrow.right", nil) { studio.sposta(n.id, di: 1) }.disabled(i == studio.nodi.count - 1)
@@ -656,20 +656,20 @@ struct ContentView: View {
                              let (doc, saltati) = studio.documentoLUT(size: dimensioneLUT, titolo: nomeLUT)
                              documento = doc
                              mostraEsporta = true
-                             if saltati > 0 { studio.messaggio = "\(saltati) nodo/i con maschere o effetti non sono nella LUT." }
+                             if saltati > 0 { studio.messaggio = "\(saltati) node(s) with masks or effects are not in the LUT." }
                          },
                          importaLUT: { importaSoloLUT = true; mostraFile = true },
                          salvaTutte: {
                              let (docs, saltati) = studio.lutTutteLeClip(size: dimensioneLUT)
                              documenti = docs
                              mostraEsportaTutte = true
-                             if saltati > 0 { studio.messaggio = "\(saltati) nodo/i con maschere o effetti non sono nelle LUT." }
+                             if saltati > 0 { studio.messaggio = "\(saltati) node(s) with masks or effects are not in the LUTs." }
                          },
                          salvaCDL: {
                              let (doc, err) = studio.documentoCDL(nome: nomeLUT)
                              documentoCDL = doc
                              mostraEsportaCDL = true
-                             if err > 0.02 { studio.messaggio = String(format: "Il CDL è un'approssimazione (scarto medio %.1f%%): curve, Warper o secondarie non si possono esprimere in un CDL. Per la correzione esatta usa la LUT.", err * 100) }
+                             if err > 0.02 { studio.messaggio = String(format: "The CDL is an approximation (average error %.1f%%): curves, Warper or secondaries can't be expressed in a CDL. Use the LUT for the exact grade.", err * 100) }
                          })
     }
 
@@ -745,9 +745,9 @@ private struct RichiesteMonitor: ViewModifier {
             mostraTrackpad = false
             Task { try? await Task.sleep(for: .milliseconds(500)); rinomina = id }
         }
-        .alert("Rinomina progetto", isPresented: Binding(get: { rinomina != nil }, set: { if !$0 { rinomina = nil; riapri() } })) {
-            TextField("Nome", text: $nuovoNome)
-            Button("Annulla", role: .cancel) {}
+        .alert("Rename project", isPresented: Binding(get: { rinomina != nil }, set: { if !$0 { rinomina = nil; riapri() } })) {
+            TextField("Name", text: $nuovoNome)
+            Button("Cancel", role: .cancel) {}
             Button("OK") { if let id = rinomina { studio.rinominaProgetto(id, nuovoNome) } }
         }
         // musica scelta dal monitor: il trackpad si chiude un attimo, si sceglie il file sul telefono, poi torna

@@ -167,7 +167,7 @@ struct Ripristina: View {
         .buttonStyle(StilePulsante())
         .foregroundStyle(attivo ? Tema.accento : Tema.testo2.opacity(0.45))
         .disabled(!attivo)
-        .accessibilityLabel("Ripristina")
+        .accessibilityLabel("Reset")
     }
 }
 
@@ -215,7 +215,7 @@ struct TestataPalette: View {
             Text(titolo).font(.caption.weight(.semibold)).foregroundStyle(Tema.testo2)
             Spacer()
             Button(action: azzera) {
-                Label("Azzera", systemImage: "arrow.counterclockwise").font(.caption)
+                Label("Reset", systemImage: "arrow.counterclockwise").font(.caption)
             }
             .buttonStyle(StilePulsante())
             .foregroundStyle(modificata ? Tema.accento : Tema.testo2.opacity(0.45))

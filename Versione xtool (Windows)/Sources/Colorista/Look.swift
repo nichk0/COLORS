@@ -3,14 +3,14 @@ import Foundation
 /// Look pronti: ognuno diventa un nodo correttore con il suo nome, da regolare o spegnere come gli altri.
 enum Look: String, CaseIterable, Identifiable {
     case tealOrange = "Teal & Orange"
-    case pellicola = "Pellicola"
-    case biancoNero = "Bianco e nero"
-    case bnRosso = "B/N filtro rosso"
-    case caldo = "Caldo"
-    case freddo = "Freddo"
+    case pellicola = "Film"
+    case biancoNero = "Black and white"
+    case bnRosso = "B&W red filter"
+    case caldo = "Warm"
+    case freddo = "Cool"
     case bleach = "Bleach bypass"
     case vintage = "Vintage"
-    case notte = "Notte americana"
+    case notte = "Day for night"
     case moody = "Moody"
 
     var id: String { rawValue }

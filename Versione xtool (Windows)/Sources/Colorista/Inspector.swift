@@ -19,7 +19,7 @@ struct InspectorMonitor: View {
             .padding(.horizontal, 12).frame(height: 30)
             .overlay(alignment: .bottom) { Rectangle().fill(Color(white: 0.17)).frame(height: 1) }
             HStack(spacing: 0) {
-                ForEach(["Video", "Audio", "Transizione", "Titolo", "File"], id: \.self) { t in
+                ForEach(["Video", "Audio", "Transition", "Title", "File"], id: \.self) { t in
                     Button { scheda = t } label: {
                         Text(t).font(.system(size: 11, weight: .semibold)).lineLimit(1)
                             .frame(maxWidth: .infinity).frame(height: 28)
@@ -31,7 +31,7 @@ struct InspectorMonitor: View {
                 }
             }
             if clip == nil {
-                Text("Scegli una clip nella timeline.").font(.system(size: 12)).foregroundStyle(Tema.testo2)
+                Text("Choose a clip in the timeline.").font(.system(size: 12)).foregroundStyle(Tema.testo2)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
@@ -39,8 +39,8 @@ struct InspectorMonitor: View {
                         switch scheda {
                         case "Video": video
                         case "Audio": audio
-                        case "Transizione": transizione
-                        case "Titolo": titolo
+                        case "Transition": transizione
+                        case "Title": titolo
                         default: file
                         }
                     }
@@ -54,21 +54,21 @@ struct InspectorMonitor: View {
     // MARK: schede
 
     @ViewBuilder private var video: some View {
-        sezione("Trasformazione", modificata: !m.inquadratura.neutra, azzera: { modifica { $0.inquadratura = Inquadratura() } }) {
+        sezione("Transform", modificata: !m.inquadratura.neutra, azzera: { modifica { $0.inquadratura = Inquadratura() } }) {
             valore("Zoom", 1...3, base: 1, "%.2f×", get: { Double($0.inquadratura.zoom) }, set: { $0.inquadratura.zoom = Float($1) })
-            valore("Posizione X", -1...1, base: 0, "%.3f", get: { Double($0.inquadratura.x) }, set: { $0.inquadratura.x = Float($1) })
-            valore("Posizione Y", -1...1, base: 0, "%.3f", get: { Double($0.inquadratura.y) }, set: { $0.inquadratura.y = Float($1) })
-            riga("Rotazione") {
+            valore("Position X", -1...1, base: 0, "%.3f", get: { Double($0.inquadratura.x) }, set: { $0.inquadratura.x = Float($1) })
+            valore("Position Y", -1...1, base: 0, "%.3f", get: { Double($0.inquadratura.y) }, set: { $0.inquadratura.y = Float($1) })
+            riga("Rotation") {
                 ForEach([0, 90, 180, 270], id: \.self) { r in
                     chip("\(r)°", m.inquadratura.rotazione == r) { modifica { $0.inquadratura.rotazione = r } }
                 }
             }
-            riga("Capovolgi") {
-                chip("Orizzontale", m.inquadratura.specchio) { modifica { $0.inquadratura.specchio.toggle() } }
+            riga("Flip") {
+                chip("Horizontal", m.inquadratura.specchio) { modifica { $0.inquadratura.specchio.toggle() } }
             }
         }
-        sezione("Velocità", modificata: m.velocita != 1, azzera: { modifica { $0.velocita = 1 } }) {
-            valore("Velocità", 0.25...4, base: 1, "%.0f%%", scala: 100, get: { $0.velocita }, set: { $0.velocita = $1 })
+        sezione("Speed", modificata: m.velocita != 1, azzera: { modifica { $0.velocita = 1 } }) {
+            valore("Speed", 0.25...4, base: 1, "%.0f%%", scala: 100, get: { $0.velocita }, set: { $0.velocita = $1 })
             riga("") {
                 ForEach([0.25, 0.5, 1, 2, 4], id: \.self) { v in
                     chip(String(format: v < 1 ? "%.2g×" : "%.0f×", v), abs(m.velocita - v) < 0.001) { modifica { $0.velocita = v } }
@@ -76,23 +76,23 @@ struct InspectorMonitor: View {
             }
         }
         if clip?.video == true {
-            sezione("Stabilizzazione", modificata: m.stabilizza, azzera: { modifica { $0.stabilizza = false } }) {
+            sezione("Stabilization", modificata: m.stabilizza, azzera: { modifica { $0.stabilizza = false } }) {
                 if m.percorsoStab.isEmpty {
-                    tasto(studio.lavoro ?? "Analizza e stabilizza", "hand.raised") { Task { await studio.stabilizzaClip() } }
+                    tasto(studio.lavoro ?? "Analyze and stabilize", "hand.raised") { Task { await studio.stabilizzaClip() } }
                 } else {
-                    riga("Attiva") { chip(m.stabilizza ? "Sì" : "No", m.stabilizza) { modifica { $0.stabilizza.toggle() } } }
-                    riga("Modo") {
-                        chip("Liscio", !m.treppiede) { modifica { $0.treppiede = false } }
-                        chip("Treppiede", m.treppiede) { modifica { $0.treppiede = true } }
+                    riga("Enabled") { chip(m.stabilizza ? "Yes" : "No", m.stabilizza) { modifica { $0.stabilizza.toggle() } } }
+                    riga("Mode") {
+                        chip("Smooth", !m.treppiede) { modifica { $0.treppiede = false } }
+                        chip("Tripod", m.treppiede) { modifica { $0.treppiede = true } }
                     }
                     if !m.treppiede {
-                        valore("Forza", 0...1, base: 0.6, "%.2f", get: { Double($0.forzaStab) }, set: { $0.forzaStab = Float($1) })
+                        valore("Strength", 0...1, base: 0.6, "%.2f", get: { Double($0.forzaStab) }, set: { $0.forzaStab = Float($1) })
                     }
                 }
             }
         } else {
-            sezione("Durata foto", modificata: m.durataFoto != 3, azzera: { modifica { $0.durataFoto = 3 } }) {
-                valore("Durata", 0.5...15, base: 3, "%.1f s", get: { $0.durataFoto }, set: { $0.durataFoto = $1 })
+            sezione("Photo duration", modificata: m.durataFoto != 3, azzera: { modifica { $0.durataFoto = 3 } }) {
+                valore("Duration", 0.5...15, base: 3, "%.1f s", get: { $0.durataFoto }, set: { $0.durataFoto = $1 })
             }
         }
     }
@@ -101,42 +101,42 @@ struct InspectorMonitor: View {
         sezione("Volume", modificata: m.volume != 1, azzera: { modifica { $0.volume = 1 } }) {
             valore("Volume", 0...2, base: 1, "%.0f%%", scala: 100, get: { Double($0.volume) }, set: { $0.volume = Float($1) })
         }
-        sezione("Dissolvenze", modificata: m.audioEntrata != 0 || m.audioUscita != 0, azzera: { modifica { $0.audioEntrata = 0; $0.audioUscita = 0 } }) {
-            valore("Entrata", 0...5, base: 0, "%.1f s", get: { $0.audioEntrata }, set: { $0.audioEntrata = $1 })
-            valore("Uscita", 0...5, base: 0, "%.1f s", get: { $0.audioUscita }, set: { $0.audioUscita = $1 })
+        sezione("Fades", modificata: m.audioEntrata != 0 || m.audioUscita != 0, azzera: { modifica { $0.audioEntrata = 0; $0.audioUscita = 0 } }) {
+            valore("Fade in", 0...5, base: 0, "%.1f s", get: { $0.audioEntrata }, set: { $0.audioEntrata = $1 })
+            valore("Fade out", 0...5, base: 0, "%.1f s", get: { $0.audioUscita }, set: { $0.audioUscita = $1 })
         }
     }
 
     @ViewBuilder private var transizione: some View {
         if studio.progetto.clips.last?.id == studio.clipAttiva {
-            nota("È l'ultima clip: la transizione si mette tra una clip e la successiva.")
+            nota("This is the last clip: a transition goes between a clip and the next one.")
         } else {
-            sezione("Verso la clip successiva", modificata: m.transizione != .nessuna, azzera: { modifica { $0.transizione = .nessuna } }) {
+            sezione("To the next clip", modificata: m.transizione != .nessuna, azzera: { modifica { $0.transizione = .nessuna } }) {
                 ForEach(Transizione.allCases) { t in
                     riga("") { chip(t.rawValue, m.transizione == t) { modifica { $0.transizione = t } }; Spacer() }
                 }
                 if m.transizione != .nessuna {
-                    valore("Durata", 0.1...3, base: 0.6, "%.1f s", get: { $0.durataTransizione }, set: { $0.durataTransizione = $1 })
+                    valore("Duration", 0.1...3, base: 0.6, "%.1f s", get: { $0.durataTransizione }, set: { $0.durataTransizione = $1 })
                 }
             }
         }
     }
 
     @ViewBuilder private var titolo: some View {
-        sezione("Testo", modificata: !m.titolo.testo.isEmpty, azzera: { modifica { $0.titolo = Titolo() } }) {
-            TextField("Scrivi il titolo…", text: Binding(get: { m.titolo.testo }, set: { v in modifica { $0.titolo.testo = v } }))
+        sezione("Text", modificata: !m.titolo.testo.isEmpty, azzera: { modifica { $0.titolo = Titolo() } }) {
+            TextField("Type the title…", text: Binding(get: { m.titolo.testo }, set: { v in modifica { $0.titolo.testo = v } }))
                 .font(.system(size: 12)).textFieldStyle(.plain)
                 .padding(.horizontal, 8).frame(height: 26)
                 .background(RoundedRectangle(cornerRadius: 4).fill(Color(white: 0.07)))
             if !m.titolo.testo.isEmpty {
-                valore("Grandezza", 0.03...0.2, base: 0.07, "%.3f", get: { Double($0.titolo.dimensione) }, set: { $0.titolo.dimensione = Float($1) })
-                valore("Posizione", 0.05...0.95, base: 0.82, "%.2f", get: { Double($0.titolo.posizione) }, set: { $0.titolo.posizione = Float($1) })
-                riga("Colore") {
+                valore("Size", 0.03...0.2, base: 0.07, "%.3f", get: { Double($0.titolo.dimensione) }, set: { $0.titolo.dimensione = Float($1) })
+                valore("Position", 0.05...0.95, base: 0.82, "%.2f", get: { Double($0.titolo.posizione) }, set: { $0.titolo.posizione = Float($1) })
+                riga("Color") {
                     ForEach(Titolo.Colore.allCases) { c in chip(c.rawValue, m.titolo.colore == c) { modifica { $0.titolo.colore = c } } }
                 }
-                riga("Stile") {
-                    chip("Grassetto", m.titolo.grassetto) { modifica { $0.titolo.grassetto.toggle() } }
-                    chip("Fascia scura", m.titolo.sfondo) { modifica { $0.titolo.sfondo.toggle() } }
+                riga("Style") {
+                    chip("Bold", m.titolo.grassetto) { modifica { $0.titolo.grassetto.toggle() } }
+                    chip("Dark band", m.titolo.sfondo) { modifica { $0.titolo.sfondo.toggle() } }
                 }
             }
         }
@@ -145,19 +145,19 @@ struct InspectorMonitor: View {
     @ViewBuilder private var file: some View {
         if let c = clip {
             let df = studio.durateFile[c.file]
-            sezione("Informazioni", modificata: false, azzera: nil) {
-                info("Nome", c.nome)
-                info("Tipo", c.video ? "Video" : "Foto")
+            sezione("Information", modificata: false, azzera: nil) {
+                info("Name", c.nome)
+                info("Type", c.video ? "Video" : "Photo")
                 if c.video {
-                    info("Durata file", df.map { VistaMonitor.timecode($0) } ?? "—")
-                    info("Entrata", VistaMonitor.timecode(m.inizio))
-                    info("Uscita", VistaMonitor.timecode(m.fine ?? df ?? 0))
+                    info("File duration", df.map { VistaMonitor.timecode($0) } ?? "—")
+                    info("Fade in", VistaMonitor.timecode(m.inizio))
+                    info("Fade out", VistaMonitor.timecode(m.fine ?? df ?? 0))
                 }
                 if let i = studio.progetto.clips.firstIndex(where: { $0.id == c.id }), i < studio.posizioniClip.count {
                     info("In timeline", VistaMonitor.timecode(studio.posizioniClip[i].inizio))
-                    info("Durata", VistaMonitor.timecode(studio.posizioniClip[i].durata))
+                    info("Duration", VistaMonitor.timecode(studio.posizioniClip[i].durata))
                 }
-                info("Nodi colore", "\(c.nodi.count)")
+                info("Color nodes", "\(c.nodi.count)")
             }
         }
     }

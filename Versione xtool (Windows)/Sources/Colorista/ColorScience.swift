@@ -294,7 +294,7 @@ struct Qualificatore: Codable, Hashable {
 
 struct Finestra: Codable, Hashable {
     enum Tipo: String, Codable, CaseIterable, Identifiable {
-        case nessuna = "Nessuna", cerchio = "Cerchio", lineare = "Lineare"
+        case nessuna = "None", cerchio = "Circle", lineare = "Linear"
         var id: String { rawValue }
     }
     var tipo: Tipo = .nessuna

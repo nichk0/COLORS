@@ -51,7 +51,7 @@ struct CurveEditor: View {
             .overlay(alignment: .topTrailing) {
                 if let i = scelto, rimovibile(i) {
                     Button { togli(i) } label: {
-                        Label("Togli punto", systemImage: "xmark")
+                        Label("Remove point", systemImage: "xmark")
                             .font(.caption2.weight(.bold))
                             .padding(.horizontal, 8).frame(height: 26)
                             .background(Capsule().fill(Color.black.opacity(0.75)))
