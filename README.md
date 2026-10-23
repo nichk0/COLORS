@@ -1,6 +1,6 @@
 # Colors
 
-![Colors on iPhone and on an external monitor](screenshots/cover.png)
+![Colors on iPhone and in Monitor Mode / AirPlay with external keyboard and mouse](screenshots/cover.png)
 
 **Colors** is an iPhone app for **color grading and video editing**, inspired by the workflow of professional post-production software (Media, Edit, Color and Deliver pages). It can be used in two ways:
 
